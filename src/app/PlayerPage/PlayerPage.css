@@ -1,0 +1,91 @@
+.PlayerPage{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    min-height: 92vh;
+    min-width: 1000px;
+}
+
+.PlayerPage-main{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 900px;
+    min-width: 600px;
+    min-height: 92vh;
+    padding-block-start: 10px;
+}
+
+.Video-title{
+    font-size: calc(14px + 1vmin);
+    font-weight: bold;
+}
+
+.Video-title-small{
+    font-size: calc(10px + 1vmin);
+    font-weight: bold;
+}
+
+.Video-discription-line{
+    margin-top: 8px;
+    margin-bottom: 15px;
+}
+
+.Video-discription{
+    margin-top: 8px;
+    margin-right: 15px;
+    font-size: calc(6px + 1vmin);
+    color: dimgray;
+}
+
+.PlayerPage-separator{
+    align-self: stretch;
+}
+
+.PlayerPage-sider{
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    margin-left: 20px;
+    min-width: 380px;
+    padding-block-start: 10px;
+}
+
+.PlayerPage-sider-title{
+    background-color: gainsboro;
+    height: 50px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 10px;
+}
+
+.PlayerPage-video-list-item{
+    width: 380px;
+    height: 120px;
+    border-bottom-width: 1px;
+    border-bottom-color: gainsboro;
+    border-bottom-style: solid;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.PlayerPage-video-list-item-img{
+    width: 160px;
+    height: 100px;
+    overflow: hidden;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+.PlayerPage-video-list-item-info{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    margin-left: 10px;
+    margin-top: 10px;
+    align-self: flex-start;
+}
