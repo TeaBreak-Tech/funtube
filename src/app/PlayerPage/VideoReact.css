@@ -418,7 +418,7 @@ body.video-react-full-window .video-react-fullscreen {
 }
 
 .video-react-menu .video-react-menu-content {
-  display: block;
+  
   padding: 0;
   margin: 0;
   overflow: auto;
@@ -619,7 +619,7 @@ body.video-react-full-window .video-react-fullscreen {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 3em;
+  height: 40px; /* EDIT:将高度修改为40px */
   background-color: #2B333F;
   background-color: rgba(43, 51, 63, 0.7);
 }

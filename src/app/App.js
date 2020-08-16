@@ -10,24 +10,30 @@ import {
 import PlayerPage from './PlayerPage/PlayerPage'
 
 function App() {
+
+  const [ is_fullscreen, setIsFullScreen ] = React.useState(false)
+
   return (
     <div className="App">
-      <header className="App-header">
+      {is_fullscreen?null:<header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p className="App-title">
+        <span className="App-title">
           Funtube Video
-        </p>
-      </header>
+        </span>
+      </header>}
       <Router>
         <Switch>
           <Route path="/">
-            <PlayerPage />
+            <PlayerPage 
+              is_fullscreen={is_fullscreen}
+              setIsFullScreen={setIsFullScreen}
+            />
           </Route>
         </Switch>
       </Router>
-      <footer className="App-footer">
+      {is_fullscreen?null:<footer className="App-footer">
         <span>Copyright@2020 Prof. Zhang Qiang</span>
-      </footer>
+      </footer>}
     </div>
   );
 }
