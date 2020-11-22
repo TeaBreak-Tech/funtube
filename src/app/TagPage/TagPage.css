@@ -1,0 +1,27 @@
+.IndexPage{
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: stretch;
+    min-width: 100%;
+}
+
+.IndexPage-content{
+    min-height: calc(92vh - 30px);
+    width: 1500px;
+    max-width: 100%;
+    padding: 10px;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item{
+    margin-left: 25px;
+    color: #ffffff;
+    font-size: calc(3px + 1.5vmin);
+}
+
+.video-cover{
+    width: 100%;
+}

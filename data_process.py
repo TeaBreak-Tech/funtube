@@ -1,0 +1,52 @@
+import pandas as pd
+
+def mean(data):
+    _sum = 0
+    for value in data:
+        _sum += value
+    return _sum/len(data)
+
+def devation(data):
+    _mean = mean(data)
+    total = 0
+    for value in data:
+        total += (value-_mean)**2
+    return (total/len(data))**0.5
+
+#string = "0 23 34 41 52 73 53 66 59 56 76 48 34 42 27 32 24 29 32 30 27 36 38 80 36 60 52 76 51 78 310 99 49 46 42 48 57 60 50 114 60 62 52 71 81 73 55 59 57 66 54 65 70 63 61 55 138 85 70 120 117 110 115 300 122 216 246 110 47 53 58 49 45 31 38 46 29 31 15 20 19 23 24 8 8"
+
+#data = [int(i) for i in string.split(' ')]
+#data2 = [0, 2.189938703094842, 2.414736402766418, 2.530439534435243, 2.68534961428265, 2.923012785691765, 2.6981678764080854, 2.8502698827717983, 2.771488002476036, 2.7355647997347607, 2.9525917237371897, 2.6321480259049848, 2.414736402766418, 2.5457298950218306, 2.2795070569547775, 2.378414230005442, 2.213363839400643, 2.320595787106084, 2.378414230005442, 2.340347319320716, 2.2795070569547775, 2.449489742783178, 2.4828237961983883, 2.990697562442441, 2.449489742783178, 2.783157683713741, 2.68534961428265, 2.9525917237371897, 2.6723451177837885, 2.9718278662008415, 4.19604776684668, 3.1543421455299043, 2.6457513110645907, 2.604290687140218, 2.5457298950218306, 2.6321480259049848, 2.7476962050544724, 2.783157683713741, 2.6591479484724942, 3.2675798769167543, 2.783157683713741, 2.806066263296683, 2.68534961428265, 2.9027831081870996, 3, 2.923012785691765, 2.7232698153315003, 2.771488002476036, 2.7476962050544724, 2.8502698827717983, 2.7108060108295344, 2.8394115144336776, 2.892507608519078, 2.8173132472612576, 2.794682392671241, 2.7232698153315003, 3.4274392955194304, 3.036370276710811, 2.892507608519078, 3.309750919646873, 3.288868167986058, 3.238531840464366, 3.2747221706220526, 4.161791450287818, 3.3234561855374687, 3.833658625477635, 3.9603518961524267, 3.238531840464366, 2.6183304986958853, 2.6981678764080854, 2.7596690210718946, 2.6457513110645907, 2.5900200641113513, 2.3596110617705666, 2.4828237961983883, 2.604290687140218, 2.320595787106084, 2.3596110617705666, 1.9679896712654306, 2.114742526881128, 2.087797629929844, 2.189938703094842, 2.213363839400643, 1.6817928305074292, 1.6817928305074292]
+
+def smooth(data):
+    new_data = [ i for i in data ]
+    
+    for i in range(0, len(data)):
+        is_peak = False
+        try: is_peak = (new_data[i-1]<new_data[i] and new_data[i]>new_data[i+1]) or (new_data[i-1]>new_data[i] and new_data[i]<new_data[i+1])
+        except: pass
+        if new_data[i] > mean(data)+devation(data)/2 or is_peak:
+            try: new_data[i] = (new_data[i-1]+new_data[i+1])/2
+            except: new_data[i] = mean(data)
+        if new_data[i] < mean(data)-devation(data)/2 or is_peak:
+            try: new_data[i] = (new_data[i-1]+new_data[i+1])/2
+            except: new_data[i] = mean(data)
+    return new_data
+
+#data_processed = smooth(data)
+
+#dataframe = pd.DataFrame({'original1':data,'original2':data2,'processed_once':data_processed,'processed_twice':smooth(data_processed),'processed_three_times':smooth(smooth(data_processed)),'processed_twelve_times':smooth(smooth(smooth(smooth(smooth(smooth(smooth(smooth(smooth(smooth(smooth(data_processed)))))))))))})
+
+#dataframe.to_csv("video2.csv",sep=',')
+
+#print ()
+
+import csv
+
+with open('video2.csv', newline='') as f:
+    reader = csv.reader(f)
+    data = list(reader)
+data = [ float(i[1]) for i in data[1:]]
+print(data)
+#data = pd.read_csv('video2.csv')
+#print(data)
