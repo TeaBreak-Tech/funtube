@@ -1,8 +1,14 @@
 .Page{
     min-width: 1040px;
+    width: 1200px;
     text-align: center;
+    align-self: center;
+    display: inline-block;
+    background-color: white;
 }
 .PlayerPage{
+    margin-left: 40px;
+    margin-right: 40px;
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -26,7 +32,6 @@
     flex-direction: column;
     align-items: flex-start;
 }
-
 .Video-title{
     font-size: calc(14px + 1vmin);
     font-weight: bold;

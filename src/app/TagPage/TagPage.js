@@ -34,14 +34,30 @@ const TagPage = () => {
         <div className="IndexPage">
             <SiteHeader/>
             <div className="IndexPage-content">
-                <Card style={{marginBottom: '10px'}} title={tagTitle}>
+                <div style={{
+                    paddingLeft:'40px',
+                    paddingRight:'40px',
+                    textAlign:"left",
+                }}>
                     {videos.map(video=>(
-                        <Card.Grid style={gridStyle}>
+                        <div style={{
+                            width: 'calc(25% - 20px)',
+                            textAlign: 'center',
+                            margin:"10px",
+                            backgroundColor:"white",
+                            boxShadow:"2px 2px 3px #00000022",
+                            display:"inline-block",
+                            borderRadius:'3px',
+                        }} onClick={()=>{
+                            window.location.href="/player/"+video.video_id+"?mode=2"
+                        }}>
                             <img className="video-cover" src={video.cover_url}></img>
-                            {video.title}
-                        </Card.Grid>
+                            <div style={{
+                                margin:'10px',
+                            }}>{video.title}</div>
+                        </div>
                     ))}
-                </Card>
+                </div>
             </div>
             <footer className="App-footer">
                 <span>Copyright@2020 Prof. Zhang Qiang</span>

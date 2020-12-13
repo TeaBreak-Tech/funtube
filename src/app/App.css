@@ -2,6 +2,7 @@
 
 .App {
   text-align: center;
+  background-color: #56a2e0;
 }
 
 .App-logo {
@@ -17,18 +18,20 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  align-self:center;
+  background-color:white;
   min-height: 8vh;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
+  box-shadow: 0px 2px 3px #00000022;
+  z-index: 20;
 }
 
 .App-title{
   font-size: calc(4px + 2vmin);
   line-height: calc(4px + 2vmin);
-  color: white;
   font-weight: bold;
 }
 

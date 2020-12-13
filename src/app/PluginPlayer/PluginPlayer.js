@@ -3,7 +3,7 @@ import './PluginPlayer.css'
 import { message } from 'antd';
 
 import { useParams, useLocation } from "react-router-dom";
-import { FuntubePlayer } from "../PlayerPage/PlayerPage"
+import { FuntubePlayer } from "../Player/Player"
 
 const PluginPlayer = (props) => {
 

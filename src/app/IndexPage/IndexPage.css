@@ -4,21 +4,22 @@
     align-items: stretch;
     justify-content: stretch;
     min-width: 100%;
+    background-color: #56a2e0;
 }
 
 .IndexPage-content{
     min-height: calc(92vh - 30px);
-    width: 1500px;
+    width: 1200px;
     max-width: 100%;
     padding: 10px;
     align-self: center;
     display: flex;
     flex-direction: column;
+    background-color: #f5f5f5;
 }
 
 .menu-item{
     margin-left: 25px;
-    color: #ffffff;
     font-size: calc(3px + 1.5vmin);
 }
 
