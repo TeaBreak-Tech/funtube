@@ -1,0 +1,12 @@
+.ant-slider-handle.ant-tooltip-open {
+    border-color: #1890ff;
+}
+.ant-slider:hover .ant-slider-rail {
+    background-color: #e1e1e111;
+}
+.ant-slider:hover .ant-slider-track {
+    background-color: #69c0ff;
+}
+.ant-slider:hover .ant-slider-handle:not(.ant-tooltip-open) {
+    border-color: #69c0ff;
+}
