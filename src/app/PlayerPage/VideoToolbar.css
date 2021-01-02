@@ -31,19 +31,6 @@
     align-items: flex-start;
 }
 
-.Player-ad-positioner{
-    z-index: 1;
-    position: absolute;
-}
-
-.Player-ad{
-    position: relative;
-    width: 100%;
-    background: url(https://funtube-1259626356.cos.ap-shanghai.myqcloud.com/sample-ad-1.jpg);
-    background-size: 100% 100%;
-    display: flex;
-    flex-direction: column;
-}
 
 .Player-ad-close {
     position: absolute;

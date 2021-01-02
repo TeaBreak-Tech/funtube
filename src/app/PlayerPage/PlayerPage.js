@@ -88,8 +88,9 @@ const PlayerPage = () => {
                 setVideos(data.videos)
                 setSessionId(data.session_id)
                 setNewMessage("visitor status: "+(data.is_new_visitor?"new-visitor":"existing-visitor"))
-                setNewMessage("visitor_id: "+data.visitor_id.substring(0,8)+'...')
-                setNewMessage("session_id: "+data.session_id.substring(0,8)+'...')
+                setNewMessage("visitor_id: "+data.visitor_id)
+                setNewMessage("session_id: "+data.session_id)
+                setNewMessage("config_num: "+data.config_num)
                 setNewMessage('---- EVENT LOG ----')
             }else{
                 console.log("Faild to start session")
@@ -198,7 +199,15 @@ const PlayerPage = () => {
                                 <span className="Video-discription">{video_info?video_info.description:"..."}</span>
                             </div>
 
-                            <button onClick={()=>setShowAd(true)} style={DEVELOP?{}:{display:'none'}}>Show Ad</button>
+                            <button
+                                onClick={()=>{
+                                    fetch("/api/logout").then(res=>{if(res.status==200)window.location.reload()})
+                                }}
+                                style={DEVELOP?{}:{display:'none'}}
+                            >
+                                重置登录信息（清除Cookie)
+                            </button>
+
                             <span style={DEVELOP?{}:{display:'none'}}>played:</span>
                             {played.map(item=>(
                                 <span style={DEVELOP?{}:{display:'none'}}>{item}</span>

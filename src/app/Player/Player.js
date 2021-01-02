@@ -59,6 +59,9 @@ export const FuntubePlayer = ({
     const [ source, setSource ] = React.useState()
     const [ playing_ad, setPlayingAd ] = React.useState(false)
     const [ auto_play, setAutoPlay] = React.useState(false)
+    const [ ad_link, setAdLink ] = React.useState("https://www.tea-break.cn")
+    const [ count_down, setCountDown ] = React.useState(0)
+
 
     const [ played, setPlayed ] = React.useState(["---"])
 
@@ -177,6 +180,14 @@ export const FuntubePlayer = ({
         })}
         // eslint-disable-next-line
     },[buffered])*/
+
+    React.useEffect(()=>{
+        if(count_down!==0){
+            setTimeout(()=>{
+                setCountDown(count_down-1)
+            },1000)
+        }
+    },[count_down])
 
 
 
@@ -350,6 +361,8 @@ export const FuntubePlayer = ({
                         //alert("Ad!")
                         changeSource(_ads[i].url) 
                         setPlayingAd(true)
+                        setAdLink(_ads[i].link||"https://www.tea-break.cn")
+                        setCountDown(5)
                     }
                 }
             }
@@ -368,7 +381,7 @@ export const FuntubePlayer = ({
     React.useEffect(()=>{
         if(player_state){
             setPlayerWidth(player_container.current?player_container.current.clientWidth:900)
-            setPlayerHeight(player_container.current?player_container.current.clientWidth*59/90:590)
+            setPlayerHeight(player_container.current?player_container.current.clientWidth*59/90:620)
             if(player_state.videoHeight/player_state.videoWidth>document.body.clientHeight/document.body.clientWidth){
                 setPlayerHeight(is_fullpage?document.body.clientHeight:590)
             }
@@ -406,9 +419,28 @@ export const FuntubePlayer = ({
                         </div>
                         <div className="Progress-container">
                             <div className="Progress-content">
+                                
                                 <div className="Progress-loaded-unplayed" style={{flex:buffered}}>|</div>
                                 <div className="Progress-unloaded" style={{flex:100-buffered}}>|</div>
                             </div>
+
+                            <div style={{position:"absolute", width:player_width}}>
+                                <div style={{position:"relative",zIndex:1,width:"100%"}}>
+                                    {ads.map(({time,visited})=>visited||(
+                                        <div style={{
+                                            width:"3px",
+                                            height:"4px",
+                                            backgroundColor:"orange",
+                                            position:"absolute",
+                                            fontSize:2,
+                                            color:"transparent",
+                                            left:(100*time/(player_state?player_state.duration:1))+"%"
+                                        }} />
+                                    ))}
+                                </div>
+                            </div>
+
+                            
                             <Slider
                                 className="Progress-controller"
                                 value={current_time}
@@ -477,25 +509,36 @@ export const FuntubePlayer = ({
 
             {show_data?<div className="Player-data-positioner">
                 <div className="Player-data-contianer">
+                    <span>native_currentTime:{player_state?player_state.currentTime:"---"}</span>
                     <span>currentTime:{player_state?player_state.currentTime:"---"}</span>
-                    <span>buffered percent:{buffered}</span>
-                    <span>seeking:{''+seeking}</span>
                     <span>actual_current_time:{actual_current_time}</span>
-                    <span>currentTime:{player_state?player_state.currentTime:"---"}</span>
-                    <span>width:{player_state?player_state.width:"---"}</span>
-                    <span>player width:{player_container.current?player_container.current.clientWidth:'---'}</span>
+                    <span>buffered percent:{buffered}</span>
+                    <span>player_width:{player_container.current?player_container.current.clientWidth:'---'}</span>
                     <span>hasStarted:{player_state?player_state.hasStarted?'true':'false':"---"}</span>
                     <span>playing:{''+playing}</span>
-                    <span>seeking:{player_state?player_state.seeking+'':"---"}</span>
-                    <span>my seeking:{seeking+''}</span>
-                    <span>isFullscreen:{player_state?player_state.isFullscreen+'':"---"}</span>
+                    <span>native_seeking:{player_state?player_state.seeking+'':"---"}</span>
+                    <span>my_seeking:{seeking+''}</span>
                     <span>pid:{''+(extra_info?extra_info.pid:"---")}</span>
                 </div>
             </div>:null}
 
-            {show_ad?<div className="Player-ad-positioner">
-                <div className="Player-ad" style={{height:player_height,width:player_width}}>
-                    <button className="Player-ad-close" onClick={()=>setShowAd(false)}>Close Ad</button>
+            {/* 在 playing_ad 的时候显示此蒙板 */}
+            {playing_ad?<div className="Player-ad-positioner">
+                <div className="Player-ad" style={{height:player_height,width:player_width}} onClick={()=>{window.open(ad_link);}} >
+                    <button 
+                        style={{zIndex:2,pointerEvents:"painted"}}
+                        className="Player-ad-close" 
+                        onClick={(e)=>{
+                            //alert(video_info.url)
+                            if(count_down===0){
+                                changeSource(video_info.url)
+                                setPlayingAd(false)
+                            }
+                            e.stopPropagation();
+                        }}
+                    >
+                        {(count_down>0)&&(count_down+"秒后")}跳过广告
+                    </button>
                 </div>
             </div>:null}
 

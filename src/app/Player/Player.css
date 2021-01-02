@@ -1,12 +1,9 @@
-.ant-slider-handle.ant-tooltip-open {
-    border-color: #1890ff;
-}
+/* 在鼠标悬浮时保持半透明 */
 .ant-slider:hover .ant-slider-rail {
     background-color: #e1e1e111;
 }
-.ant-slider:hover .ant-slider-track {
-    background-color: #69c0ff;
-}
-.ant-slider:hover .ant-slider-handle:not(.ant-tooltip-open) {
-    border-color: #69c0ff;
+
+/* 保持拖动按钮的index在广告时间提示之上*/
+.ant-slider-handle {
+    z-index: 2;
 }

@@ -39,7 +39,7 @@
 .Player-ad{
     position: relative;
     width: 100%;
-    background: url(https://funtube-1259626356.cos.ap-shanghai.myqcloud.com/sample-ad-1.jpg);
+    /*background: url(https://funtube-1259626356.cos.ap-shanghai.myqcloud.com/sample-ad-1.jpg);*/
     background-size: 100% 100%;
     display: flex;
     flex-direction: column;
@@ -49,7 +49,7 @@
     position: absolute;
     right: 0;
     bottom: 120px;
-    width: 100px;
+    width: 120px;
     height: 40px;
     background-color: #000000aa;
     border-width: 0;
