@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import './Player.css'
 import './VideoReact.css'
 import './VideoToolbar.css'
@@ -9,6 +9,10 @@ import { Chart, LineAdvance} from 'bizcharts';
 import { Slider, Button, Tooltip, Switch } from 'antd';
 import { ExpandOutlined, PlayCircleOutlined, PauseCircleOutlined, SoundOutlined, SettingOutlined, FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons';
 import { useLocation } from "react-router-dom";
+import { play } from 'video-react/lib/actions/player';
+
+export const HEIGHT = 460
+
 
 export const FuntubePlayer = ({
     video_info,
@@ -43,7 +47,7 @@ export const FuntubePlayer = ({
     const [ seeking, setSeeking ] = React.useState()
     const [ current_time, setCurrentTime ] = React.useState(0) //进度条上的时间（拖动时随动），播放广告时则代表广告进度
     const [ actual_current_time, setActualCurrentTime ] = React.useState(0) //实际播放时间（全自动），在播放广告的时候停止更新
-    const [ player_height, setPlayerHeight ] = React.useState(400)
+    const [ player_height, setPlayerHeight ] = React.useState(HEIGHT)
     const [ player_width, setPlayerWidth ] = React.useState(player_container.current?player_container.current.clientWidth:1000)
     const [ show_data, setShowData ] = React.useState(DEVELOP)
     const [ show_ad, setShowAd ] = React.useState(false)
@@ -61,6 +65,11 @@ export const FuntubePlayer = ({
     const [ auto_play, setAutoPlay] = React.useState(false)
     const [ ad_link, setAdLink ] = React.useState("https://www.tea-break.cn")
     const [ count_down, setCountDown ] = React.useState(0)
+    const [ ad_id, setAdId ] = React.useState(null)
+
+    const [ ad_toggling, setAdToggling ] = React.useState(false) // 单纯为了解决广告播放前后的 PAUSE/PLAY 误报
+
+    const [ progress_remember, setProgressRemember ] = React.useState(0)
 
 
     const [ played, setPlayed ] = React.useState(["---"])
@@ -70,6 +79,7 @@ export const FuntubePlayer = ({
         //console.log(timestamp)
         return{
             timestamp,
+            video_info:playing_ad?("ad_"+ad_id):("video_"+video_info.video_id),
             video_time:player_state?player_state.currentTime:0,
             volume:player_state?player_state.muted?0:volume:volume,
             buffered:buffered,
@@ -103,7 +113,6 @@ export const FuntubePlayer = ({
                 _ads.push({...video_info.ads[i],visited:false})
             }
             setAds(_ads)
-
             setSource(video_info.url)
         }
         console.log(video_info)
@@ -116,12 +125,13 @@ export const FuntubePlayer = ({
     }
 
     React.useEffect(()=>{
-        if(video_info&&(source===video_info.url)&&actual_current_time!==0){
-            player.current.seek(actual_current_time)
-        }
+        //if(DEVELOP)console.log("source changed to",source)
+        
+        
     },[source])
 
     React.useEffect(()=>{
+        //console.log("playing_ad changed to",playing_ad)
         if(playing_ad){
             setAutoPlay(true)
         }
@@ -136,27 +146,36 @@ export const FuntubePlayer = ({
         setPlayerWidth(player_container.current?player_container.current.clientWidth:900)
         window.addEventListener('resize', ()=>{
             setPlayerWidth(player_container.current?player_container.current.clientWidth:900)
-            setPlayerHeight(player_container.current?player_container.current.clientWidth*59/90:590)
+            setPlayerHeight(player_container.current?player_container.current.clientWidth*HEIGHT/900:HEIGHT)
         })
         if(is_fullpage){
             setPlayerWidth(player_container.current?player_container.current.clientWidth:900)
-            setPlayerHeight(player_container.current?player_container.current.clientWidth*59/90:590)
+            setPlayerHeight(player_container.current?player_container.current.clientWidth*HEIGHT/900:HEIGHT)
         }
     },[])
 
 
     // Event: PLAY / PAUSE
     React.useEffect(()=>{
+        //if(DEVELOP)console.log("playing changed to",playing)
         //console.log("odanconeqwofndvfvnofeianvionrgvowerbrebr")
-        if(playing!==undefined&&player_state.hasStarted){
+        if(playing!==undefined
+            && player_state.hasStarted // 为了解决视频开始播放前的一次 PAUSE 误报
+            && !ad_toggling // 广告与视频切换的 Play/Pause 不生成报告 （解决误报）
+        ){
             logMessage({
                 label:playing?'PLAY':'PAUSE',
                 description:'toggle play or pause',
                 ...conventional_log(),
             })
         }
+
+        
+        
         // eslint-disable-next-line
     },[playing])
+
+    //React.useEffect(()=>console.log("ad_toggling changed to",ad_toggling),[ad_toggling])
 
     //Event: SEEK
     React.useEffect(()=>{
@@ -188,6 +207,13 @@ export const FuntubePlayer = ({
             },1000)
         }
     },[count_down])
+
+    React.useEffect(()=>{
+        if(ad_toggling===false&&video_info&&source===video_info.url){
+            player.current.seek(progress_remember)
+            //player.current.play()
+        }
+    },[ad_toggling])
 
 
 
@@ -276,12 +302,27 @@ export const FuntubePlayer = ({
         raw_buffered = Math.round(player_state?(100*raw_buffered/player_state.duration):0)
         setBuffered(raw_buffered)
 
+        
+
         // 获取视频播放进度 actual_current_time
         if(player_state!==undefined){
+
+            // 这是广告切换回视频之后第一个有反应的地方，在这里seek到历史播放位置
+            if(player_state.hasStarted&&ad_toggling&&video_info&&source===video_info.url){
+                player.current.seek(progress_remember)
+                //player.current.play()
+            }
             
-            // 顺便修改播放状态 playing 以便监听
+            // 顺便修改播放状态 playing 以便监听 （ 广告播放也属于 Playing ）
             if(!player_state.paused!==playing){
                 setPlaying(!player_state.paused)
+                
+                
+
+                console.log("player_state.paused changed to",player_state?player_state.paused:player_state)
+                if(!player_state.paused && ad_toggling){
+                    setAdToggling(false) // 用 AdFinishSwitch 忽略广告播放之后的第一次 pause
+                } 
             }
 
             // 只有在播放正式视频时才会更新视频播放进度
@@ -290,8 +331,15 @@ export const FuntubePlayer = ({
             }else{
                 // 播放广告时，直接将广告播放进度赋值给进度条进度（造成不可拖动的效果）
                 setCurrentTime(player_state.currentTime)
+                // 并且直接汇报广告update事件
+                logFrequentMessage({
+                    label:'AD_UPDATE',
+                    description:'advertisement playing',
+                    ...conventional_log()
+                })
                 // 广告播放结束之后
                 if(player_state.ended){
+                    setAdToggling(true) // 防止 Play/Pause 误报
                     changeSource(video_info.url)
                     setPlayingAd(false)
                 }
@@ -362,7 +410,10 @@ export const FuntubePlayer = ({
                         changeSource(_ads[i].url) 
                         setPlayingAd(true)
                         setAdLink(_ads[i].link||"https://www.tea-break.cn")
+                        setAdId(_ads[i].ad_id)
                         setCountDown(5)
+                        setAdToggling(true) // 防止 Play/Pause 误报
+                        setProgressRemember(actual_current_time)
                     }
                 }
             }
@@ -381,9 +432,9 @@ export const FuntubePlayer = ({
     React.useEffect(()=>{
         if(player_state){
             setPlayerWidth(player_container.current?player_container.current.clientWidth:900)
-            setPlayerHeight(player_container.current?player_container.current.clientWidth*59/90:620)
+            setPlayerHeight(player_container.current?player_container.current.clientWidth*HEIGHT/900:HEIGHT)
             if(player_state.videoHeight/player_state.videoWidth>document.body.clientHeight/document.body.clientWidth){
-                setPlayerHeight(is_fullpage?document.body.clientHeight:590)
+                setPlayerHeight(is_fullpage?document.body.clientHeight:HEIGHT)
             }
         }
         // eslint-disable-next-line
@@ -499,7 +550,10 @@ export const FuntubePlayer = ({
                                 />}
                                 <Button shape="circle" type="link"
                                     icon={<ExpandOutlined style={{ color: '#cceeff' }}/>} 
-                                    onClick={()=>{if(setIsFullPage){setIsFullPage(false)};if(player_state){player.current.toggleFullscreen()}}}
+                                    onClick={()=>{if(setIsFullPage){setIsFullPage(false)};if(player_state){
+                                        player.current.toggleFullscreen()
+                                        setPlayerHeight(HEIGHT)
+                                    }}}
                                 />
                             </div>
                         </div>
@@ -519,12 +573,24 @@ export const FuntubePlayer = ({
                     <span>native_seeking:{player_state?player_state.seeking+'':"---"}</span>
                     <span>my_seeking:{seeking+''}</span>
                     <span>pid:{''+(extra_info?extra_info.pid:"---")}</span>
+                    <span>ad_toggling:{""+ad_toggling}</span>
                 </div>
             </div>:null}
 
             {/* 在 playing_ad 的时候显示此蒙板 */}
             {playing_ad?<div className="Player-ad-positioner">
-                <div className="Player-ad" style={{height:player_height,width:player_width}} onClick={()=>{window.open(ad_link);}} >
+                <div
+                    className="Player-ad"
+                    style={{height:player_height,width:player_width}}
+                    onClick={()=>{
+                        logMessage({
+                            label:'AD-CLICK',
+                            description:'ad clicked and opened the url',
+                            ...conventional_log(),
+                        })
+                        window.open(ad_link);
+                    }}
+                >
                     <button 
                         style={{zIndex:2,pointerEvents:"painted"}}
                         className="Player-ad-close" 
@@ -533,6 +599,12 @@ export const FuntubePlayer = ({
                             if(count_down===0){
                                 changeSource(video_info.url)
                                 setPlayingAd(false)
+                                setAdToggling(true)
+                                logMessage({
+                                    label:'SKIP-AD',
+                                    description:'skip ad at:'+current_time,
+                                    ...conventional_log(),
+                                })
                             }
                             e.stopPropagation();
                         }}

@@ -81,12 +81,13 @@
 }
 
 .PlayerPage-sider-title{
-    background-color: gainsboro;
     height: 50px;
     display: flex;
     flex-direction: row;
     align-items: center;
     padding-left: 10px;
+    font-size: 20px;
+    font-weight: bold;
 }
 
 .PlayerPage-video-list-item{

@@ -16,7 +16,7 @@ import TagPage from './TagPage/TagPage'
 function App() {
 
   return (
-    <div className="App">
+    <div className="App" >
       
       <Router>
         <Switch>
@@ -37,7 +37,7 @@ function App() {
             <PluginPlayer/>
           </Route>
         
-          <Route exact path="/:tagTitle">
+          <Route exact path="/:catId">
             <TagPage/>
           </Route>
 

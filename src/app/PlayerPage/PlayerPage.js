@@ -53,6 +53,8 @@ const PlayerPage = () => {
 
     const [ session_id, setSessionId ] = React.useState("")
 
+    const [ suggestions, setSuggestions ] = React.useState([])
+
     const lastMessage = React.useRef()
 
     const lastFrequentMessage = React.useRef()
@@ -123,8 +125,23 @@ const PlayerPage = () => {
         })
     }
 
+    const getSuggestionList = (vid) => {
+        fetch(`/api/suggestion?vid=${vid}`)
+        .then(res=>{
+            if(res.status===200){
+                return res.json()
+            }
+        })
+        .then(data=>{
+            if(data){
+                setSuggestions(data.result)
+            }
+        })
+    }
+
     React.useEffect(()=>{
         startSession(videoId)
+        getSuggestionList(videoId)
         //getVideoList()
     },[videoId])
 
@@ -170,6 +187,7 @@ const PlayerPage = () => {
             <div className="PlayerPage">
                 
                 <div className={is_fullpage?"PlayerPage-main-fullscreen":"PlayerPage-main"}>
+                    
                     {is_fullpage?null:
                         <div className="PlayerPage-main-title">
                             <span className="Video-title">{video_info?video_info.title:"..."}</span>
@@ -218,9 +236,9 @@ const PlayerPage = () => {
 
                 {(!SHOW_SIDEBAR||is_fullpage)?null:
                     <div className="PlayerPage-sider">
-                        <div className="PlayerPage-sider-title">相关视频:</div>
-                        {videos.map((item,index)=>
-                            <div className="PlayerPage-video-list-item" onClick={()=>{setVideoInfo(item)}}>
+                        <div className="PlayerPage-sider-title">点击观看:</div>
+                        {DEVELOP||suggestions.map((item,index)=>
+                            <div className="PlayerPage-video-list-item" onClick={()=>{window.location.href="/player/"+item.video_id+"?mode="+player_type}}>
                                 <Image 
                                     alt="Video Cover" 
                                     className="PlayerPage-video-list-item-img" 
@@ -254,7 +272,7 @@ const PlayerPage = () => {
                 }
             </div>
             {is_fullpage?null:<footer className="App-footer">
-                <span>Copyright@2020 Prof. Zhang Qiang</span>
+                <span>Funtube Video</span>
             </footer>}
         </div>
         

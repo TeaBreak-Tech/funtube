@@ -6,12 +6,6 @@
     min-width: 100%;
 }
 
-.menu-item{
-    margin-left: 25px;
-    font-size: calc(3px + 1.5vmin);
-    color: #444343;
-    font-weight: 500;
-}
 
 .video-cover{
     width: 100%;
