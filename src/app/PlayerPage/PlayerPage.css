@@ -37,14 +37,7 @@
     font-weight: bold;
 }
 
-.Video-title-small{
-    font-size: calc(10px + 1vmin);
-    font-weight: bold;
-    max-width: 380px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-}
+
 
 .Video-discription-line{
     margin-top: 8px;
@@ -92,7 +85,7 @@
 
 .PlayerPage-video-list-item{
     width: 380px;
-    height: 120px;
+    height: 70px;
     border-bottom-width: 1px;
     border-bottom-color: gainsboro;
     border-bottom-style: solid;
@@ -102,9 +95,20 @@
     align-items: center;
 }
 
+.Video-title-small{
+    font-size: calc(7px + 0.7vmin);
+    font-weight: bold;
+    max-width: 380px;
+    margin-right: 10px;
+    word-wrap:break-word; 
+    word-break:break-all; 
+    overflow: hidden;/*这个参数根据需要来绝对要不要*/
+    text-align: left;
+}
+
 .PlayerPage-video-list-item-img{
-    width: 160px;
-    height: 100px;
+    width: 100px;
+    height: 60px;
     overflow: hidden;
     object-fit: cover;
     border-radius: 2px;

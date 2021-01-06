@@ -46,7 +46,7 @@ const IndexPage = () => {
 
     const [ title, setTitle ] = React.useState([])
 
-    const getVideos = () => {
+    const getVideos = (timer) => {
         fetch('/api/videos/0')
         .then(response => {
             if(response.status===200){
@@ -56,6 +56,7 @@ const IndexPage = () => {
             setVideos(data.videos)
             console.log(data.videos)
             setTitle(data.title)
+            clearInterval(timer)
         }})
     }
 
@@ -66,7 +67,7 @@ const IndexPage = () => {
     };
 
     React.useEffect(()=>{
-        getVideos()
+        let timer = setInterval(()=>getVideos(timer),100)
     },[])
     
     return (
@@ -139,13 +140,13 @@ export const VideoCard = ({video}) => {
             ></Image>
             <div style={{
                 margin:'10px',
-                height:"40px",
+                minHeight:"40px",
                 textAlign:"left",
                 fontWeight:"bold"
             }}>{video.title||"无名称"}</div>
             <div style={{
                 margin:'10px',
-                height:"20px",
+                minHeight:"20px",
                 textAlign:"left",
                 fontSize:"12px",
                 color:"gray",

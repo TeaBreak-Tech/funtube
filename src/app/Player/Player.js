@@ -12,7 +12,7 @@ import { useLocation } from "react-router-dom";
 import { play } from 'video-react/lib/actions/player';
 
 export const HEIGHT = 460
-
+export const WIDTH = 680
 
 export const FuntubePlayer = ({
     video_info,
@@ -143,14 +143,14 @@ export const FuntubePlayer = ({
     //React.useEffect(()=>{ if(ex_continuous_log){ ex_setContinuousLog(continuous_log) } },[continuous_log])
 
     React.useEffect(()=>{
-        setPlayerWidth(player_container.current?player_container.current.clientWidth:900)
+        setPlayerWidth(player_container.current?player_container.current.clientWidth:WIDTH)
         window.addEventListener('resize', ()=>{
-            setPlayerWidth(player_container.current?player_container.current.clientWidth:900)
-            setPlayerHeight(player_container.current?player_container.current.clientWidth*HEIGHT/900:HEIGHT)
+            setPlayerWidth(player_container.current?player_container.current.clientWidth:WIDTH)
+            setPlayerHeight(player_container.current?player_container.current.clientWidth*HEIGHT/WIDTH:HEIGHT)
         })
         if(is_fullpage){
-            setPlayerWidth(player_container.current?player_container.current.clientWidth:900)
-            setPlayerHeight(player_container.current?player_container.current.clientWidth*HEIGHT/900:HEIGHT)
+            setPlayerWidth(player_container.current?player_container.current.clientWidth:WIDTH)
+            setPlayerHeight(player_container.current?player_container.current.clientWidth*HEIGHT/WIDTH:HEIGHT)
         }
     },[])
 
@@ -431,8 +431,8 @@ export const FuntubePlayer = ({
 
     React.useEffect(()=>{
         if(player_state){
-            setPlayerWidth(player_container.current?player_container.current.clientWidth:900)
-            setPlayerHeight(player_container.current?player_container.current.clientWidth*HEIGHT/900:HEIGHT)
+            setPlayerWidth(player_container.current?player_container.current.clientWidth:WIDTH)
+            setPlayerHeight(player_container.current?player_container.current.clientWidth*HEIGHT/WIDTH:HEIGHT)
             if(player_state.videoHeight/player_state.videoWidth>document.body.clientHeight/document.body.clientWidth){
                 setPlayerHeight(is_fullpage?document.body.clientHeight:HEIGHT)
             }
@@ -567,7 +567,9 @@ export const FuntubePlayer = ({
                     <span>currentTime:{player_state?player_state.currentTime:"---"}</span>
                     <span>actual_current_time:{actual_current_time}</span>
                     <span>buffered percent:{buffered}</span>
-                    <span>player_width:{player_container.current?player_container.current.clientWidth:'---'}</span>
+                    <span>current.player_width:{player_container.current?player_container.current.clientWidth:'---'}</span>
+                    <span>current.player_height:{player_container.current?player_container.current.clientHeight:'---'}</span>
+                    <span>player_height:{player_height}</span>
                     <span>hasStarted:{player_state?player_state.hasStarted?'true':'false':"---"}</span>
                     <span>playing:{''+playing}</span>
                     <span>native_seeking:{player_state?player_state.seeking+'':"---"}</span>
