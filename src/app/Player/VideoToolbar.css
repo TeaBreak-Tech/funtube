@@ -48,7 +48,7 @@
 .Player-ad-close {
     position: absolute;
     right: 0;
-    top: 70px;
+    bottom: 86px;
     width: 120px;
     height: 40px;
     background-color: #000000aa;

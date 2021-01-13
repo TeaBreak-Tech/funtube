@@ -57,7 +57,6 @@
 
 .PlayerPage-main-body{
     margin-top: 20px;
-    margin-bottom: 100px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -85,7 +84,7 @@
 
 .PlayerPage-video-list-item{
     width: 380px;
-    height: 70px;
+    height: 60px;
     border-bottom-width: 1px;
     border-bottom-color: gainsboro;
     border-bottom-style: solid;
@@ -108,7 +107,7 @@
 
 .PlayerPage-video-list-item-img{
     width: 100px;
-    height: 60px;
+    height: 50px;
     overflow: hidden;
     object-fit: cover;
     border-radius: 2px;
@@ -129,7 +128,8 @@
     flex-direction: column;
     width: 380px;
     overflow-y: scroll;
-    height: 300px;
+    height: 170px;
+    font-size: 10px;
 }
 
 .Log{

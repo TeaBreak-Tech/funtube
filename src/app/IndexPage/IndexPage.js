@@ -128,6 +128,7 @@ export const VideoCard = ({video}) => {
                 display:"inline-block",
                 verticalAlign: "top",
                 borderRadius:'3px',
+                overflow:"hidden",
             }} 
             onClick={()=>{
                 window.location.href="/player/"+video.video_id+"?mode=2"
@@ -140,15 +141,19 @@ export const VideoCard = ({video}) => {
             ></Image>
             <div style={{
                 margin:'10px',
+                marginBottom:0,
                 minHeight:"40px",
                 textAlign:"left",
-                fontWeight:"bold"
+                fontWeight:"bold",
+                fontSize:"12px",
             }}>{video.title||"无名称"}</div>
             <div style={{
                 margin:'10px',
-                minHeight:"20px",
+                marginTop:"0px",
+                marginBottom:"5px",
+                minHeight:"15px",
                 textAlign:"left",
-                fontSize:"12px",
+                fontSize:"10px",
                 color:"gray",
             }}>
                 <span style={{marginRight:"20px",display:"inline-block"}}>观看数：{video.views||"0"}</span>

@@ -217,25 +217,18 @@ const PlayerPage = () => {
                                 <span className="Video-discription">{video_info?video_info.description:"..."}</span>
                             </div>
 
-                            <button
-                                onClick={()=>{
-                                    fetch("/api/logout").then(res=>{if(res.status==200)window.location.reload()})
-                                }}
-                                style={DEVELOP?{}:{display:'none'}}
-                            >
-                                重置登录信息（清除Cookie)
-                            </button>
+                            
 
-                            <span style={DEVELOP?{}:{display:'none'}}>played:</span>
+                            {/*<span style={DEVELOP?{}:{display:'none'}}>played:</span>
                             {played.map(item=>(
                                 <span style={DEVELOP?{}:{display:'none'}}>{item}</span>
-                            ))}
+                            ))}*/}
                         </div>
                     }
                 </div>
 
                 {(!SHOW_SIDEBAR||is_fullpage)?null:
-                    <div className="PlayerPage-sider">
+                    <div className="PlayerPage-sider" >
                         <div className="PlayerPage-sider-title">点击观看:</div>
                         {DEVELOP||suggestions.map((item,index)=>
                             <div className="PlayerPage-video-list-item" onClick={()=>{window.location.href="/player/"+item.video_id+"?mode="+player_type}}>
@@ -267,6 +260,14 @@ const PlayerPage = () => {
                                 <span ref={lastFrequentMessage} className="Log">{item.label?JSON.stringify(item):item}</span>
                             )}
                         </div>
+                        <button
+                            onClick={()=>{
+                                fetch("/api/logout").then(res=>{if(res.status==200)window.location.reload()})
+                            }}
+                            style={DEVELOP?{}:{display:'none'}}
+                        >
+                            重置登录信息（清除Cookie)
+                        </button>
                     </div>
                 }
             </div>
