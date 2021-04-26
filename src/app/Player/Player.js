@@ -152,7 +152,11 @@ export const FuntubePlayer = ({
             setPlayerWidth(player_container.current?player_container.current.clientWidth:WIDTH)
             setPlayerHeight(player_container.current?player_container.current.clientWidth*HEIGHT/WIDTH:HEIGHT)
         }
-    },[])
+        if(fullscreen){
+            setPlayerWidth(window.screen.availWidth)
+            setPlayerHeight(window.screen.availHeight)
+        }
+    },[is_fullpage, fullscreen])
 
 
     // Event: PLAY / PAUSE
@@ -485,7 +489,7 @@ export const FuntubePlayer = ({
                                             position:"absolute",
                                             fontSize:2,
                                             color:"transparent",
-                                            left:(100*time/(player_state?player_state.duration:1))+"%"
+                                            left:(time/(player_state?player_state.duration:1))*player_width
                                         }} />
                                     ))}
                                 </div>
