@@ -2,12 +2,7 @@ import React from 'react'
 import './PlayerPage.css'
 import './VideoReact.css'
 import './VideoToolbar.css'
-
-//import './Antd.css'
-import { Player, BigPlayButton,ControlBar } from 'video-react';
-import { Chart, LineAdvance} from 'bizcharts';
-import { Slider, Button, Tooltip, Switch, message, Image } from 'antd';
-import { ExpandOutlined, PlayCircleOutlined, PauseCircleOutlined, SoundOutlined, SettingOutlined, FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons';
+import { message, Image } from 'antd';
 import { useParams, useLocation } from "react-router-dom";
 import { SiteHeader } from '../IndexPage/IndexPage';
 
@@ -30,6 +25,8 @@ const PlayerPage = () => {
     else{player_type = parseInt(player_type)}
     let DEVELOP = test==='1'//pageVersion==='0'
     //const video_id = new URLSearchParams(useLocation().search).get('video')
+
+    const [ hello, setHello ] = React.useState("hello!")
 
     const [ is_fullpage, setIsFullPage ] = React.useState(false)
 

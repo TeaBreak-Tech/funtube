@@ -1,8 +1,7 @@
 import React from 'react'
-import logo from '../logo.svg';
 
 import './IndexPage.css'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Image } from 'antd';
 
 import icon from '../icon.png';
@@ -46,11 +45,28 @@ const IndexPage = () => {
 
     const [ title, setTitle ] = React.useState([])
 
+    const pid = new URLSearchParams(useLocation().search).get('pid')
+    let player_type = new URLSearchParams(useLocation().search).get('mode')
+    if (!player_type){player_type=1}
+    else{player_type = parseInt(player_type)}
+
+    
     const getVideos = (timer) => {
-        fetch('/api/videos/0')
+        fetch('/api/video_by_tag/0')
         .then(response => {
             if(response.status===200){
                 return response.json()
+            }else if(response.status===401){
+                
+                
+                fetch('/api/session',{
+                    method:'POST',
+                    body:JSON.stringify({
+                        pid,
+                        player_type,
+                        client:0,
+                    })
+                })
             }
         }).then(data=>{if(data){
             setVideos(data.videos)
@@ -67,7 +83,7 @@ const IndexPage = () => {
     };
 
     React.useEffect(()=>{
-        let timer = setInterval(()=>getVideos(timer),100)
+        let timer = setInterval(()=>getVideos(timer),1000)
     },[])
     
     return (

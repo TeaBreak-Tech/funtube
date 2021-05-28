@@ -13,7 +13,7 @@ const TagPage = () => {
     const { catId } = useParams()
 
     const getVideos = () => {
-        fetch('/api/videos/'+catId)
+        fetch('/api/video_by_tag/'+catId)
         .then(response => {
             if(response.status===200){
                 return response.json()

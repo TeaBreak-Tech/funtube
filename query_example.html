@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>数据获取 DEMO</title>
+    </head>
+    <body>
+        <span>获取用户视频观看历史</span>
+        <pre id="show_script_visited_videos"></pre>
+        <button onclick="click_visited_videos()">执行</button>
+        <pre id="visited_videos">null</pre>
+
+        <span>获取用户视频观看历史</span>
+        <pre id="show_script_viewed_ads"></pre>
+        <button onclick="click_viewed_ads()">执行</button>
+        <pre id="viewed_ads"></pre>
+    </body>
+
+    <script>
+        async function click_visited_videos () {
+            let result = await getVisitedVideos("test")
+            string = ""
+            result.forEach(element => {
+                string +=
+                    element.time.split('.')[0].replace('T',' ')
+                    + "\t" + element.title + "\n"
+            });
+            document.getElementById("visited_videos")
+            .innerHTML = string
+        }
+        async function click_viewed_ads () {
+            let result = await getViewedAds("test")
+            string = ""
+            result.forEach(element => {
+                string += element.ad_id + "    " 
+                    + element.brand + "    " 
+                    + element.product + "\n"
+            });
+            document.getElementById("viewed_ads")
+            .innerHTML = string
+        }
+        // Show scripts on screen
+        document.addEventListener("DOMContentLoaded", function(event) {
+            document.getElementById("show_script_visited_videos").textContent = document.getElementById("script_visited_videos").innerHTML
+            document.getElementById("show_script_viewed_ads").textContent = document.getElementById("script_viewed_ads").innerHTML
+        });
+    </script>
+        
+</html>
+
+<script id="script_visited_videos">
+// Fetch visited videos as a list from server
+async function getVisitedVideos (pid) {
+    let res = await fetch(
+        "https://midroll.funtubevideo.cn/api/research/history?pid="+pid)
+    let data = await res.json()
+    return data.result
+}
+</script>
+
+<script id="script_viewed_ads">
+// Fetch viewed ads from server
+async function getViewedAds (pid) {
+    let response = await fetch(
+        "https://midroll.funtubevideo.cn/api/research/ads?pid="+pid)
+    let data = await response.json()
+    return data.result
+}
+</script>
+
+<style>
+    body{
+        padding-top: 1em;
+    }
+    pre{
+        background-color: #eee;
+        padding-left: 1em;
+        padding-bottom: 1em;
+    }
+    #visited_videos{
+        padding-top: 1em;
+    }
+    #viewed_ads{
+        padding-top: 1em;
+    }
+    button{
+        padding: 5px;
+        width: 100px;
+    }
+</style>

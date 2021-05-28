@@ -411,7 +411,7 @@ export const FuntubePlayer = ({
                         _ads[i].visited = true
                         setAds(_ads)
                         //alert("Ad!")
-                        changeSource(_ads[i].url) 
+                        changeSource(_ads[i].src) 
                         setPlayingAd(true)
                         setAdLink(_ads[i].link||"https://www.tea-break.cn")
                         setAdId(_ads[i].ad_id)
