@@ -9,7 +9,6 @@ import { Chart, LineAdvance} from 'bizcharts';
 import { Slider, Button, Tooltip, Switch } from 'antd';
 import { ExpandOutlined, PlayCircleOutlined, PauseCircleOutlined, SoundOutlined, SettingOutlined, FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons';
 import { useLocation } from "react-router-dom";
-import { play } from 'video-react/lib/actions/player';
 
 export const HEIGHT = 460
 export const WIDTH = 680
@@ -25,7 +24,6 @@ export const FuntubePlayer = ({
     ex_setPlayed,
     disableToggleFullPage,
     extra_info,
-    hide_svi,
     //ex_continuous_log,
     //ex_setContinuousLog,
 }) => {
@@ -63,7 +61,7 @@ export const FuntubePlayer = ({
     const [ source, setSource ] = React.useState()
     const [ playing_ad, setPlayingAd ] = React.useState(false)
     const [ auto_play, setAutoPlay] = React.useState(false)
-    const [ ad_link, setAdLink ] = React.useState("https://www.tea-break.cn")
+    const [ ad_link, setAdLink ] = React.useState("https://midroll.funtubevideo.cn")
     const [ count_down, setCountDown ] = React.useState(0)
     const [ ad_id, setAdId ] = React.useState(null)
 
@@ -205,12 +203,14 @@ export const FuntubePlayer = ({
     },[buffered])*/
 
     React.useEffect(()=>{
-        if(count_down!==0){
-            setTimeout(()=>{
+        
+        setTimeout(()=>{
+            if(count_down!==0 && playing_ad && playing && !ad_toggling){
                 setCountDown(count_down-1)
-            },1000)
-        }
-    },[count_down])
+            }
+        },1000)
+        
+    },[count_down, playing])
 
     React.useEffect(()=>{
         if(ad_toggling===false&&video_info&&source===video_info.url){
@@ -413,7 +413,7 @@ export const FuntubePlayer = ({
                         //alert("Ad!")
                         changeSource(_ads[i].src) 
                         setPlayingAd(true)
-                        setAdLink(_ads[i].link||"https://www.tea-break.cn")
+                        setAdLink(_ads[i].href||"https://midroll.funtubevideo.cn")
                         setAdId(_ads[i].ad_id)
                         setCountDown(5)
                         setAdToggling(true) // 防止 Play/Pause 误报
@@ -580,6 +580,7 @@ export const FuntubePlayer = ({
                     <span>my_seeking:{seeking+''}</span>
                     <span>pid:{''+(extra_info?extra_info.pid:"---")}</span>
                     <span>ad_toggling:{""+ad_toggling}</span>
+                    <span>playing_ad:{""+playing_ad}</span>
                 </div>
             </div>:null}
 

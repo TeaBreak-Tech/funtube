@@ -26,8 +26,6 @@ const PlayerPage = () => {
     let DEVELOP = test==='1'//pageVersion==='0'
     //const video_id = new URLSearchParams(useLocation().search).get('video')
 
-    const [ hello, setHello ] = React.useState("hello!")
-
     const [ is_fullpage, setIsFullPage ] = React.useState(false)
 
     const [ video_info, setVideoInfo ] = React.useState(undefined)

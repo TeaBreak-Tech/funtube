@@ -51,39 +51,29 @@ const IndexPage = () => {
     else{player_type = parseInt(player_type)}
 
     
-    const getVideos = (timer) => {
+    const getVideos = () => {
         fetch('/api/video_by_tag/0')
         .then(response => {
             if(response.status===200){
                 return response.json()
-            }else if(response.status===401){
-                
-                
-                fetch('/api/session',{
-                    method:'POST',
-                    body:JSON.stringify({
-                        pid,
-                        player_type,
-                        client:0,
-                    })
-                })
             }
         }).then(data=>{if(data){
             setVideos(data.videos)
-            console.log(data.videos)
             setTitle(data.title)
-            clearInterval(timer)
         }})
     }
 
-    const gridStyle = {
-        width: 'calc(25% - 20px)',
-        textAlign: 'center',
-        
-    };
-
     React.useEffect(()=>{
-        let timer = setInterval(()=>getVideos(timer),1000)
+        fetch('/api/session',{
+            method:'POST',
+            body:JSON.stringify({
+                pid,
+                player_type,
+                client:0,
+            })
+        }).then(()=>{
+            getVideos()
+        })
     },[])
     
     return (
