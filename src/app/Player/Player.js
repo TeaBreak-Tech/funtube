@@ -438,6 +438,7 @@ export const FuntubePlayer = ({
                             setAds(_ads)
                         }else{
                             // 向服务器请求广告方案
+                            player.current.pause()
                             console.log("fetching ad plan")
                             fetch('/api/ad_plan')
                             .then(res=>{if(res.status===200){
