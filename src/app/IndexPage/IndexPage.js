@@ -60,7 +60,9 @@ const IndexPage = () => {
         }).then(data=>{if(data){
             setVideos(data.videos)
             setTitle(data.title)
-        }})
+        }}).catch(()=>{
+            getVideos()
+        })
     }
 
     React.useEffect(()=>{

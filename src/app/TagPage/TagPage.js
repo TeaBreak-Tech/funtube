@@ -22,7 +22,9 @@ const TagPage = () => {
             setVideos(data.videos)
             console.log(data.result)
             setTitle(data.title)
-        }})
+        }}).catch(()=>{
+            getVideos()
+        })
     }
 
     const gridStyle = {

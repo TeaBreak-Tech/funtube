@@ -164,6 +164,7 @@ export const FuntubePlayer = ({
         if(playing!==undefined
             && player_state.hasStarted // 为了解决视频开始播放前的一次 PAUSE 误报
             && !ad_toggling // 广告与视频切换的 Play/Pause 不生成报告 （解决误报）
+            && !playing_ad // 广告播放过程中默认不会暂停播放，以此排除掉全屏点开广告链接时的暂停播放误报
         ){
             logMessage({
                 label:playing?'PLAY':'PAUSE',
@@ -265,7 +266,17 @@ export const FuntubePlayer = ({
         player.current.subscribeToStateChange(state=>setPlayerState(state)); 
     })
 
-
+    const [ ad_clicked, setAdClicked ] = React.useState();
+    React.useEffect(()=>{
+        if(ad_clicked){
+            logMessage({
+                label:'AD-CLICK',
+                description:'ad clicked and opened the url',
+                ...conventional_log(),
+            })
+            window.open(ad_link); 
+        }
+    },[ad_clicked])
 
     // 时刻调用内容
 
@@ -320,9 +331,6 @@ export const FuntubePlayer = ({
             // 顺便修改播放状态 playing 以便监听 （ 广告播放也属于 Playing ）
             if(!player_state.paused!==playing){
                 setPlaying(!player_state.paused)
-                
-                
-
                 console.log("player_state.paused changed to",player_state?player_state.paused:player_state)
                 if(!player_state.paused && ad_toggling){
                     setAdToggling(false) // 用 AdFinishSwitch 忽略广告播放之后的第一次 pause
@@ -341,8 +349,16 @@ export const FuntubePlayer = ({
                     description:'advertisement playing',
                     ...conventional_log()
                 })
+                // 如果广告播放被暂停（全屏下点击），则恢复播放并进入广告链接
+                if (player_state.paused && !ad_toggling){
+                    player.current.play()
+                    // 注：快速切换播放暂停会造成退出全屏的效果。
+                    setAdClicked(true);// 打开广告链接
+                }else{
+                    setAdClicked(false);
+                }
                 // 广告播放结束之后
-                if(player_state.ended){
+                if(player_state.ended){// 切换回原本的视频
                     setAdToggling(true) // 防止 Play/Pause 误报
                     changeSource(video_info.url)
                     setPlayingAd(false)
@@ -404,20 +420,40 @@ export const FuntubePlayer = ({
         if (video_info){
             let _ads = ads
             for (let i in _ads){
-                console.log(_ads[i].time - actual_current_time)
+                // console.log(_ads[i].time - actual_current_time)
                 if (-0.5 < (_ads[i].time - actual_current_time) && (_ads[i].time - actual_current_time) < 0.5){ // 对比广告时间
                     if(!_ads[i].visited){
                         // 播放广告
-                        _ads[i].visited = true
-                        setAds(_ads)
                         //alert("Ad!")
-                        changeSource(_ads[i].src) 
-                        setPlayingAd(true)
-                        setAdLink(_ads[i].href||"https://midroll.funtubevideo.cn")
-                        setAdId(_ads[i].ad_id)
-                        setCountDown(5)
-                        setAdToggling(true) // 防止 Play/Pause 误报
-                        setProgressRemember(actual_current_time)
+                        console.log(_ads[i])
+                        if (_ads[i].src!=="auto"){
+                            changeSource(_ads[i].src) 
+                            setPlayingAd(true)
+                            setAdLink(_ads[i].href||"https://midroll.funtubevideo.cn")
+                            setAdId(_ads[i].ad_id)
+                            setCountDown(5)
+                            setAdToggling(true) // 防止 Play/Pause 误报
+                            setProgressRemember(actual_current_time)
+                            _ads[i].visited = true
+                            setAds(_ads)
+                        }else{
+                            // 向服务器请求广告方案
+                            console.log("fetching ad plan")
+                            fetch('/api/ad_plan')
+                            .then(res=>{if(res.status===200){
+                                return res.json()
+                            }}).then(data=>{
+                                changeSource(data.src)
+                                setPlayingAd(true)
+                                setAdLink(data.href)
+                                setAdId(data.ad_id)
+                                setCountDown(5)
+                                setAdToggling(true) // 防止 Play/Pause 误报
+                                setProgressRemember(actual_current_time)
+                                _ads[i].visited = true
+                                setAds(_ads)
+                            })
+                        }
                     }
                 }
             }
@@ -456,7 +492,7 @@ export const FuntubePlayer = ({
                 src={source}
                 autoPlay={auto_play}
             >
-                <BigPlayButton position="center" />
+                <BigPlayButton position={playing_ad?"top-left":"center"} />
                 <ControlBar 
                     //disableCompletely={player_state?(!player_state.isFullscreen):true}
                     disableDefaultControls

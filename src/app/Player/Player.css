@@ -7,3 +7,7 @@
 .ant-slider-handle {
     z-index: 2;
 }
+
+.video-react-big-play-button-top-left{
+    display: none !important;
+}
