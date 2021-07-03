@@ -350,7 +350,7 @@ export const FuntubePlayer = ({
                     ...conventional_log()
                 })
                 // 如果广告播放被暂停（全屏下点击），则恢复播放并进入广告链接
-                if (player_state.paused && !ad_toggling){
+                if (player_state.paused && !ad_toggling && !player_state.ended){
                     player.current.play()
                     // 注：快速切换播放暂停会造成退出全屏的效果。
                     setAdClicked(true);// 打开广告链接
@@ -518,7 +518,8 @@ export const FuntubePlayer = ({
 
                             <div style={{position:"absolute", width:player_width}}>
                                 <div style={{position:"relative",zIndex:1,width:"100%"}}>
-                                    {ads.map(({time,visited})=>visited||(
+                                    {/* 小黄点 */}
+                                    {/* {ads.map(({time,visited})=>visited||(
                                         <div style={{
                                             width:"3px",
                                             height:"4px",
@@ -528,7 +529,7 @@ export const FuntubePlayer = ({
                                             color:"transparent",
                                             left:(time/(player_state?player_state.duration:1))*player_width
                                         }} />
-                                    ))}
+                                    ))} */}
                                 </div>
                             </div>
 
