@@ -80,7 +80,7 @@ export const FuntubePlayer = ({
         return{
             timestamp,
             video_info:playing_ad?("ad_"+ad_id):("video_"+video_info.video_id),
-            video_time:player_state?player_state.currentTime:0,
+            video_time:current_time,
             volume:player_state?player_state.muted?0:volume:volume,
             buffered:buffered,
             playback_rate:player_state?player_state.playbackRate:1,
@@ -119,21 +119,11 @@ export const FuntubePlayer = ({
     },[video_info])
 
 
-    const changeSource = (name) => {
-        setSource(name)
-        player.current.load();
-    }
-
     const changeAdSource = (name) => {
         setAdSource(name)
         ad_player.current.load();
     }
 
-    React.useEffect(()=>{
-        //if(DEVELOP)console.log("source changed to",source)
-        
-        
-    },[source])
 
     React.useEffect(()=>{
         //console.log("playing_ad changed to",playing_ad)
@@ -182,7 +172,6 @@ export const FuntubePlayer = ({
         // eslint-disable-next-line
     },[playing])
 
-    //React.useEffect(()=>console.log("ad_toggling changed to",ad_toggling),[ad_toggling])
 
     //Event: SEEK
     React.useEffect(()=>{
@@ -241,18 +230,6 @@ export const FuntubePlayer = ({
         player.current.subscribeToStateChange(state=>setPlayerState(state));
         ad_player.current.subscribeToStateChange(state=>setAdPlayerState(state)); 
     })
-
-    const [ ad_clicked, setAdClicked ] = React.useState();
-    React.useEffect(()=>{
-        if(ad_clicked){
-            logMessage({
-                label:'AD-CLICK',
-                description:'ad clicked and opened the url',
-                ...conventional_log(),
-            })
-            window.open(ad_link); 
-        }
-    },[ad_clicked])
 
     // 时刻调用内容
     React.useEffect(()=>{
@@ -381,14 +358,13 @@ export const FuntubePlayer = ({
             setCurrentTime(video_progress)
         }
         console.log(video_progress)
-        if (video_info){
+        if (video_info && !player_state.paused){
             let _ads = ads
             for (let i in _ads){
-                // console.log(_ads[i].time - video_progress)
                 if (-0.5 < (_ads[i].time - video_progress) && (_ads[i].time - video_progress) < 0.5){ // 对比广告时间
                     if(!_ads[i].visited){
+                        player.current.pause() // 先把视频暂停
                         // 播放广告
-                        player.current.pause() // 先把广告暂停
                         if (_ads[i].src!=="auto"){
                             changeAdSource(_ads[i].src) 
                             setPlayingAd(true)
