@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import './Player.css'
 import './VideoReact.css'
 import './VideoToolbar.css'
@@ -38,13 +38,15 @@ export const FuntubePlayer = ({
 
 
     const player = React.useRef()
+    const ad_player = React.useRef()
     const player_container = React.useRef()
 
     const [ player_state, setPlayerState ] = React.useState()
+    const [ ad_player_state, setAdPlayerState ] = React.useState()
     const [ playing, setPlaying ] = React.useState()
     const [ seeking, setSeeking ] = React.useState()
     const [ current_time, setCurrentTime ] = React.useState(0) //进度条上的时间（拖动时随动），播放广告时则代表广告进度
-    const [ actual_current_time, setActualCurrentTime ] = React.useState(0) //实际播放时间（全自动），在播放广告的时候停止更新
+    const [ video_progress, setVideoProgress ] = React.useState(0) //实际播放时间（全自动），在播放广告的时候停止更新
     const [ player_height, setPlayerHeight ] = React.useState(HEIGHT)
     const [ player_width, setPlayerWidth ] = React.useState(player_container.current?player_container.current.clientWidth:1000)
     const [ show_data, setShowData ] = React.useState(DEVELOP)
@@ -59,6 +61,7 @@ export const FuntubePlayer = ({
     //const [ video_info, setVideoInfo ] = React.useState(ex_video_info)
     const [ ads, setAds ] = React.useState([])
     const [ source, setSource ] = React.useState()
+    const [ ad_source, setAdSource ] = React.useState()
     const [ playing_ad, setPlayingAd ] = React.useState(false)
     const [ auto_play, setAutoPlay] = React.useState(false)
     const [ ad_link, setAdLink ] = React.useState("https://midroll.funtubevideo.cn")
@@ -67,8 +70,7 @@ export const FuntubePlayer = ({
 
     const [ ad_toggling, setAdToggling ] = React.useState(false) // 单纯为了解决广告播放前后的 PAUSE/PLAY 误报
 
-    const [ progress_remember, setProgressRemember ] = React.useState(0)
-
+    // const [ progress_remember, setProgressRemember ] = React.useState(0)
 
     const [ played, setPlayed ] = React.useState(["---"])
 
@@ -122,6 +124,11 @@ export const FuntubePlayer = ({
         player.current.load();
     }
 
+    const changeAdSource = (name) => {
+        setAdSource(name)
+        ad_player.current.load();
+    }
+
     React.useEffect(()=>{
         //if(DEVELOP)console.log("source changed to",source)
         
@@ -171,10 +178,7 @@ export const FuntubePlayer = ({
                 description:'toggle play or pause',
                 ...conventional_log(),
             })
-        }
-
-        
-        
+        } 
         // eslint-disable-next-line
     },[playing])
 
@@ -192,35 +196,6 @@ export const FuntubePlayer = ({
         else{setSeekFrom(player_state.currentTime)}
         // eslint-disable-next-line
     },[seeking])
-
-    // Event: BUFFER
-    /*React.useEffect(()=>{
-        if(player_state&&player_state.hasStarted){logMessage({
-            label:'BUFFERED',
-            description:'buffered to '+buffered+'%',
-            ...conventional_log(),
-        })}
-        // eslint-disable-next-line
-    },[buffered])*/
-
-    React.useEffect(()=>{
-        
-        setTimeout(()=>{
-            if(count_down!==0 && playing_ad && playing && !ad_toggling){
-                setCountDown(count_down-1)
-            }
-        },1000)
-        
-    },[count_down, playing])
-
-    React.useEffect(()=>{
-        if(ad_toggling===false&&video_info&&source===video_info.url){
-            player.current.seek(progress_remember)
-            //player.current.play()
-        }
-    },[ad_toggling])
-
-
 
     // Event: FULLPAGE
     React.useEffect(()=>{
@@ -263,7 +238,8 @@ export const FuntubePlayer = ({
     },[volume])
 
     React.useEffect(()=>{
-        player.current.subscribeToStateChange(state=>setPlayerState(state)); 
+        player.current.subscribeToStateChange(state=>setPlayerState(state));
+        ad_player.current.subscribeToStateChange(state=>setAdPlayerState(state)); 
     })
 
     const [ ad_clicked, setAdClicked ] = React.useState();
@@ -279,7 +255,6 @@ export const FuntubePlayer = ({
     },[ad_clicked])
 
     // 时刻调用内容
-
     React.useEffect(()=>{
         // 显示高能进度条进度
         if(video_info){
@@ -319,50 +294,28 @@ export const FuntubePlayer = ({
 
         
 
-        // 获取视频播放进度 actual_current_time
+        // 获取视频播放进度 video_progress
         if(player_state!==undefined){
-
-            // 这是广告切换回视频之后第一个有反应的地方，在这里seek到历史播放位置
-            if(player_state.hasStarted&&ad_toggling&&video_info&&source===video_info.url){
-                player.current.seek(progress_remember)
-                //player.current.play()
-            }
-            
-            // 顺便修改播放状态 playing 以便监听 （ 广告播放也属于 Playing ）
             if(!player_state.paused!==playing){
                 setPlaying(!player_state.paused)
-                console.log("player_state.paused changed to",player_state?player_state.paused:player_state)
-                if(!player_state.paused && ad_toggling){
-                    setAdToggling(false) // 用 AdFinishSwitch 忽略广告播放之后的第一次 pause
-                } 
             }
+            setVideoProgress(player_state.currentTime)
+        }
 
-            // 只有在播放正式视频时才会更新视频播放进度
-            if(!playing_ad){
-                setActualCurrentTime(player_state.currentTime)
-            }else{
-                // 播放广告时，直接将广告播放进度赋值给进度条进度（造成不可拖动的效果）
-                setCurrentTime(player_state.currentTime)
-                // 并且直接汇报广告update事件
-                logFrequentMessage({
-                    label:'AD_UPDATE',
-                    description:'advertisement playing',
-                    ...conventional_log()
-                })
-                // 如果广告播放被暂停（全屏下点击），则恢复播放并进入广告链接
-                if (player_state.paused && !ad_toggling && !player_state.ended){
-                    player.current.play()
-                    // 注：快速切换播放暂停会造成退出全屏的效果。
-                    setAdClicked(true);// 打开广告链接
-                }else{
-                    setAdClicked(false);
-                }
-                // 广告播放结束之后
-                if(player_state.ended){// 切换回原本的视频
-                    setAdToggling(true) // 防止 Play/Pause 误报
-                    changeSource(video_info.url)
-                    setPlayingAd(false)
-                }
+        if(ad_player_state!==undefined && playing_ad){
+            // 播放广告时，直接将广告播放进度赋值给进度条进度（造成不可拖动的效果）
+            setCurrentTime(ad_player_state.currentTime)
+            // 并且直接汇报广告update事件
+            logFrequentMessage({
+                label:'AD_UPDATE',
+                description:'advertisement playing',
+                ...conventional_log()
+            })
+            
+            // 广告播放结束时
+            if(ad_player_state.ended){// 切换回原本的视频
+                setPlayingAd(false)
+                player.current.play()
             }
         }
 
@@ -393,7 +346,18 @@ export const FuntubePlayer = ({
         }
         
         // eslint-disable-next-line
-    },[ player_state, video_info ])
+    },[ player_state, ad_player_state, video_info ])
+
+    // 倒计时
+    React.useEffect(()=>{
+        
+        setTimeout(()=>{
+            if(count_down!==0 && playing_ad){
+                setCountDown(count_down-1)
+            }
+        },1000)
+        
+    },[count_down, playing])
 
 
 
@@ -414,26 +378,23 @@ export const FuntubePlayer = ({
                 description:'normal playing',
                 ...conventional_log()
             })
-            setCurrentTime(actual_current_time)
+            setCurrentTime(video_progress)
         }
-        console.log(actual_current_time)
+        console.log(video_progress)
         if (video_info){
             let _ads = ads
             for (let i in _ads){
-                // console.log(_ads[i].time - actual_current_time)
-                if (-0.5 < (_ads[i].time - actual_current_time) && (_ads[i].time - actual_current_time) < 0.5){ // 对比广告时间
+                // console.log(_ads[i].time - video_progress)
+                if (-0.5 < (_ads[i].time - video_progress) && (_ads[i].time - video_progress) < 0.5){ // 对比广告时间
                     if(!_ads[i].visited){
                         // 播放广告
-                        //alert("Ad!")
-                        console.log(_ads[i])
+                        player.current.pause() // 先把广告暂停
                         if (_ads[i].src!=="auto"){
-                            changeSource(_ads[i].src) 
+                            changeAdSource(_ads[i].src) 
                             setPlayingAd(true)
                             setAdLink(_ads[i].href||"https://midroll.funtubevideo.cn")
                             setAdId(_ads[i].ad_id)
                             setCountDown(5)
-                            setAdToggling(true) // 防止 Play/Pause 误报
-                            setProgressRemember(actual_current_time)
                             _ads[i].visited = true
                             setAds(_ads)
                         }else{
@@ -444,13 +405,11 @@ export const FuntubePlayer = ({
                             .then(res=>{if(res.status===200){
                                 return res.json()
                             }}).then(data=>{
-                                changeSource(data.src)
+                                changeAdSource(data.src)
                                 setPlayingAd(true)
                                 setAdLink(data.href)
                                 setAdId(data.ad_id)
                                 setCountDown(5)
-                                setAdToggling(true) // 防止 Play/Pause 误报
-                                setProgressRemember(actual_current_time)
                                 _ads[i].visited = true
                                 setAds(_ads)
                             })
@@ -459,7 +418,7 @@ export const FuntubePlayer = ({
                 }
             }
         }
-    },[actual_current_time])
+    },[video_progress])
 
     //React.useEffect(()=>{logMessage(player_state?player_state.paused?"D-PAUSE":"D-PLAY":"")},[player_state])
 
@@ -484,130 +443,159 @@ export const FuntubePlayer = ({
 
 
     return(
-        <div className={is_fullpage?"Player-container-fullscreen":"Player-container"} ref={player_container}>
-            <Player
-                fluid={false}
-                width={'100%'}
-                height={player_height}
-                ref={player}
-                src={source}
-                autoPlay={auto_play}
-            >
-                <BigPlayButton position={playing_ad?"top-left":"center"} />
-                <ControlBar 
-                    //disableCompletely={player_state?(!player_state.isFullscreen):true}
-                    disableDefaultControls
-                    autoHide
+        <div
+            className={is_fullpage?"Player-container-fullscreen":"Player-container"}
+            ref={player_container}
+            style={{height:player_height}}
+        >
+            <div style={{zIndex:playing_ad?1:2}}>
+                <Player
+                    fluid={false}
+                    width={'100%'}
+                    height={player_height}
+                    ref={player}
+                    src={source}
+                    autoPlay={auto_play}
                 >
-                    <div className="Player-toolbar">
-                        <div className="SVI-positioner">
-                            <div className="SVI-contianer">
-                            {show_svi?
-                                <Chart animate={false} height={35} autoFit pure data={SVI} padding={[0,0,0,0]} defaultInteractions={[]}>
-                                    <LineAdvance animate={false} shape="smooth" area position="x*y" color={['finished', ['#66ddff', '#cceeff']]}/>
-                                </Chart>
-                            :null}
-                            </div>
-                        </div>
-                        <div className="Progress-container">
-                            <div className="Progress-content">
-                                
-                                <div className="Progress-loaded-unplayed" style={{flex:buffered}}>|</div>
-                                <div className="Progress-unloaded" style={{flex:100-buffered}}>|</div>
-                            </div>
-
-                            <div style={{position:"absolute", width:player_width}}>
-                                <div style={{position:"relative",zIndex:1,width:"100%"}}>
-                                    {/* 小黄点 */}
-                                    {/* {ads.map(({time,visited})=>visited||(
-                                        <div style={{
-                                            width:"3px",
-                                            height:"4px",
-                                            backgroundColor:"orange",
-                                            position:"absolute",
-                                            fontSize:2,
-                                            color:"transparent",
-                                            left:(time/(player_state?player_state.duration:1))*player_width
-                                        }} />
-                                    ))} */}
+                    <BigPlayButton position={playing_ad?"top-left":"center"} />
+                    <ControlBar 
+                        //disableCompletely={player_state?(!player_state.isFullscreen):true}
+                        disableDefaultControls
+                        autoHide
+                    >
+                        <div className="Player-toolbar">
+                            <div className="SVI-positioner">
+                                <div className="SVI-contianer">
+                                {show_svi?
+                                    <Chart animate={false} height={35} autoFit pure data={SVI} padding={[0,0,0,0]} defaultInteractions={[]}>
+                                        <LineAdvance animate={false} shape="smooth" area position="x*y" color={['finished', ['#66ddff', '#cceeff']]}/>
+                                    </Chart>
+                                :null}
                                 </div>
                             </div>
+                            <div className="Progress-container">
+                                <div className="Progress-content">
+                                    
+                                    <div className="Progress-loaded-unplayed" style={{flex:buffered}}>|</div>
+                                    <div className="Progress-unloaded" style={{flex:100-buffered}}>|</div>
+                                </div>
 
-                            
-                            <Slider
-                                className="Progress-controller"
-                                value={current_time}
-                                max={player_state?player_state.duration:1}
-                                onChange={time=>{setCurrentTime(time);setSeeking(true)}}
-                                onAfterChange={()=>{player.current.seek(current_time);setSeeking(false)}}
-                                tipFormatter={secondToTime}
-                                disabled={playing_ad}
-                            />
-                        </div>
-                        <div className="Player-toolbar-content">
-                            <div className="Player-toolbar-content-left">
-                                <Button shape="circle" type="link"
-                                    icon={player_state?player_state.paused?<PlayCircleOutlined style={{ fontSize: '19px', color: '#cceeff' }}/>:<PauseCircleOutlined style={{ fontSize: '19px', color: '#cceeff' }}/>:<PlayCircleOutlined style={{ fontSize: '19px', color: '#cceeff' }}/>} 
-                                    onClick={()=>{player_state?player_state.paused?player.current.play():player.current.pause():player.current.play();logMessage(Date.now()+': Click start button.')}}
-                                />
-                                <span className="Player-toolbar-timer">{player_state?secondToTime(player_state.currentTime):"---"}|{player_state?secondToTime(player_state.duration):"---"}</span>
-                            </div>
-                            <div className="Player-toolbar-content-right">
-                                <Tooltip title={
-                                    <div className="Player-toolbar-playback-menu">
-                                        <Button type="link" className="playback-choice" onClick={()=>player.current.playbackRate=0.5}>0.5X</Button>
-                                        <Button type="link" className="playback-choice" onClick={()=>player.current.playbackRate=0.75}>0.75X</Button>
-                                        <Button type="link" className="playback-choice" onClick={()=>player.current.playbackRate=1}>1X</Button>
-                                        <Button type="link" className="playback-choice" onClick={()=>player.current.playbackRate=1.25}>1.25X</Button>
-                                        <Button type="link" className="playback-choice" onClick={()=>player.current.playbackRate=1.5}>1.5X</Button>
-                                        <Button type="link" className="playback-choice" onClick={()=>player.current.playbackRate=2}>2X</Button>
+                                <div style={{position:"absolute", width:player_width}}>
+                                    <div style={{position:"relative",zIndex:1,width:"100%"}}>
+                                        {/* 小黄点 */}
+                                        {/* {ads.map(({time,visited})=>visited||(
+                                            <div style={{
+                                                width:"3px",
+                                                height:"4px",
+                                                backgroundColor:"orange",
+                                                position:"absolute",
+                                                fontSize:2,
+                                                color:"transparent",
+                                                left:(time/(player_state?player_state.duration:1))*player_width
+                                            }} />
+                                        ))} */}
                                     </div>
-                                }>
-                                    <Button shape="circle" type="link">
-                                        {player_state?player.current.playbackRate+"X":"---"}
-                                    </Button>
-                                </Tooltip>
-                                <Tooltip title={
-                                    <div className="Player-toolbar-volume-menu">
-                                        <Slider className="Player-toolbar-volume-slider" vertical value={player_state?player_state.volume*100:100} onChange={value=>player.current.volume=value/100} max={100}/>
-                                    </div>
-                                }>
-                                    <Button shape="circle" type="link"
-                                        icon={player_state?player_state.muted?<SoundOutlined/>:<SoundOutlined style={{ color: '#cceeff' }}/>:<SoundOutlined style={{ color: '#cceeff' }}/>} 
-                                        onClick={()=>player_state?player.current.muted=(!player.current.muted):{}}
-                                    />
-                                </Tooltip>
-                                {DEVELOP?<Tooltip placement="topRight" title={
-                                    <div className="Player-toolbar-settings-menu">
-                                        Video Data：<Switch checked={show_data} onChange={checked=>setShowData(checked)} />
-                                    </div>
-                                }>
-                                    <Button shape="circle" type="link"
-                                        icon={<SettingOutlined style={{ color: '#cceeff' }}/>}
-                                    />
-                                </Tooltip>:null}
-                                {disableToggleFullPage?null:<Button shape="circle" type="link"
-                                    icon={is_fullpage?<FullscreenExitOutlined style={{ color: '#cceeff' }}/>:<FullscreenOutlined style={{ color: '#cceeff' }}/>} 
-                                    onClick={()=>{setIsFullPage(!is_fullpage);if(player_state.isFullscreen){player.current.toggleFullscreen()}}}
-                                />}
-                                <Button shape="circle" type="link"
-                                    icon={<ExpandOutlined style={{ color: '#cceeff' }}/>} 
-                                    onClick={()=>{if(setIsFullPage){setIsFullPage(false)};if(player_state){
-                                        player.current.toggleFullscreen()
-                                        setPlayerHeight(HEIGHT)
-                                    }}}
+                                </div>
+
+                                
+                                <Slider
+                                    className="Progress-controller"
+                                    value={current_time}
+                                    max={player_state?player_state.duration:1}
+                                    onChange={time=>{setCurrentTime(time);setSeeking(true)}}
+                                    onAfterChange={()=>{player.current.seek(current_time);setSeeking(false)}}
+                                    tipFormatter={secondToTime}
+                                    disabled={playing_ad}
                                 />
                             </div>
+                            <div className="Player-toolbar-content">
+                                <div className="Player-toolbar-content-left">
+                                    <Button shape="circle" type="link"
+                                        icon={player_state?player_state.paused?<PlayCircleOutlined style={{ fontSize: '19px', color: '#cceeff' }}/>:<PauseCircleOutlined style={{ fontSize: '19px', color: '#cceeff' }}/>:<PlayCircleOutlined style={{ fontSize: '19px', color: '#cceeff' }}/>} 
+                                        onClick={()=>{player_state?player_state.paused?player.current.play():player.current.pause():player.current.play();logMessage(Date.now()+': Click start button.')}}
+                                    />
+                                    <span className="Player-toolbar-timer">{player_state?secondToTime(player_state.currentTime):"---"}|{player_state?secondToTime(player_state.duration):"---"}</span>
+                                </div>
+                                <div className="Player-toolbar-content-right">
+                                    <Tooltip title={
+                                        <div className="Player-toolbar-playback-menu">
+                                            <Button type="link" className="playback-choice" onClick={()=>player.current.playbackRate=0.5}>0.5X</Button>
+                                            <Button type="link" className="playback-choice" onClick={()=>player.current.playbackRate=0.75}>0.75X</Button>
+                                            <Button type="link" className="playback-choice" onClick={()=>player.current.playbackRate=1}>1X</Button>
+                                            <Button type="link" className="playback-choice" onClick={()=>player.current.playbackRate=1.25}>1.25X</Button>
+                                            <Button type="link" className="playback-choice" onClick={()=>player.current.playbackRate=1.5}>1.5X</Button>
+                                            <Button type="link" className="playback-choice" onClick={()=>player.current.playbackRate=2}>2X</Button>
+                                        </div>
+                                    }>
+                                        <Button shape="circle" type="link">
+                                            {player_state?player.current.playbackRate+"X":"---"}
+                                        </Button>
+                                    </Tooltip>
+                                    <Tooltip title={
+                                        <div className="Player-toolbar-volume-menu">
+                                            <Slider className="Player-toolbar-volume-slider" vertical value={player_state?player_state.volume*100:100} onChange={value=>player.current.volume=value/100} max={100}/>
+                                        </div>
+                                    }>
+                                        <Button shape="circle" type="link"
+                                            icon={player_state?player_state.muted?<SoundOutlined/>:<SoundOutlined style={{ color: '#cceeff' }}/>:<SoundOutlined style={{ color: '#cceeff' }}/>} 
+                                            onClick={()=>player_state?player.current.muted=(!player.current.muted):{}}
+                                        />
+                                    </Tooltip>
+                                    {DEVELOP?<Tooltip placement="topRight" title={
+                                        <div className="Player-toolbar-settings-menu">
+                                            Video Data：<Switch checked={show_data} onChange={checked=>setShowData(checked)} />
+                                        </div>
+                                    }>
+                                        <Button shape="circle" type="link"
+                                            icon={<SettingOutlined style={{ color: '#cceeff' }}/>}
+                                        />
+                                    </Tooltip>:null}
+                                    {disableToggleFullPage?null:<Button shape="circle" type="link"
+                                        icon={is_fullpage?<FullscreenExitOutlined style={{ color: '#cceeff' }}/>:<FullscreenOutlined style={{ color: '#cceeff' }}/>} 
+                                        onClick={()=>{setIsFullPage(!is_fullpage);if(player_state.isFullscreen){player.current.toggleFullscreen()}}}
+                                    />}
+                                    <Button shape="circle" type="link"
+                                        icon={<ExpandOutlined style={{ color: '#cceeff' }}/>} 
+                                        onClick={()=>{if(setIsFullPage){setIsFullPage(false)};if(player_state){
+                                            player.current.toggleFullscreen()
+                                            setPlayerHeight(HEIGHT)
+                                        }}}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </ControlBar>
-            </Player>
+                    </ControlBar>
+                </Player>
+            </div>
+
+            <div
+                className="Ad-player"
+                style={{
+                    zIndex:playing_ad?2:1,
+                    position:'relative',
+                    bottom:player_height,
+                }}
+            >
+                <div style={{display:'unset'}}>
+                <Player
+                    fluid={false}
+                    width={'100%'}
+                    height={player_height}
+                    src={ad_source}
+                    autoPlay={true}
+                    ref={ad_player}
+                    style={{zIndex:3}}
+                >
+                    <ControlBar disableDefaultControls autoHide />
+                </Player>
+                </div>
+            </div>
 
             {show_data?<div className="Player-data-positioner">
                 <div className="Player-data-contianer">
                     <span>native_currentTime:{player_state?player_state.currentTime:"---"}</span>
                     <span>currentTime:{player_state?player_state.currentTime:"---"}</span>
-                    <span>actual_current_time:{actual_current_time}</span>
+                    <span>video_progress:{video_progress}</span>
                     <span>buffered percent:{buffered}</span>
                     <span>current.player_width:{player_container.current?player_container.current.clientWidth:'---'}</span>
                     <span>current.player_height:{player_container.current?player_container.current.clientHeight:'---'}</span>
@@ -623,7 +611,10 @@ export const FuntubePlayer = ({
             </div>:null}
 
             {/* 在 playing_ad 的时候显示此蒙板 */}
-            {playing_ad?<div className="Player-ad-positioner">
+            <div
+                className="Player-ad-positioner"
+                hidden={!playing_ad}
+            >
                 <div
                     className="Player-ad"
                     style={{height:player_height,width:player_width}}
@@ -637,14 +628,16 @@ export const FuntubePlayer = ({
                     }}
                 >
                     <button 
-                        style={{zIndex:2,pointerEvents:"painted"}}
+                        style={{zIndex:5,pointerEvents:"painted"}}
                         className="Player-ad-close" 
                         onClick={(e)=>{
                             //alert(video_info.url)
                             if(count_down===0){
-                                changeSource(video_info.url)
+                                // changeSource(video_info.url)
+                                player.current.play()
+                                ad_player.current.pause()
                                 setPlayingAd(false)
-                                setAdToggling(true)
+                                // setAdToggling(true)
                                 logMessage({
                                     label:'SKIP-AD',
                                     description:'skip ad at:'+current_time,
@@ -657,7 +650,7 @@ export const FuntubePlayer = ({
                         {(count_down>0)&&(count_down+"秒后")}跳过广告
                     </button>
                 </div>
-            </div>:null}
+            </div>
 
         </div>
     )
