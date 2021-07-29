@@ -187,7 +187,7 @@ const PlayerPage = () => {
                         <div className="PlayerPage-main-title">
                             <span className="Video-title">{video_info?video_info.title:"..."}</span>
                             <div className="Video-discription-line">
-                                <span className="Video-discription">{video_info?video_info.created_time.slice(0,video_info.created_time.indexOf('.')).replace('T',' '):"..."}</span>
+                                <span className="Video-discription">{video_info?video_info.created_time:"..."}</span>
                             </div>
                         </div>
                     }

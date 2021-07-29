@@ -106,6 +106,7 @@ export const FuntubePlayer = ({
     },[show_ad])
 
 
+    // 设置视频播放器URL，设置广告播放器URL
     React.useEffect(()=>{
         if(video_info){
             let _ads = []
@@ -114,7 +115,23 @@ export const FuntubePlayer = ({
             }
             setAds(_ads)
             setSource(video_info.url)
-        }
+            for (let i in _ads){
+                if (_ads[i].src!=="auto"){
+                    changeAdSource(_ads[i].src)
+                    setAdLink(_ads[i].href||"https://midroll.funtubevideo.cn")
+                    setAdId(_ads[i].ad_id)
+                }else{
+                    fetch('/api/ad_plan')
+                    .then(res=>{if(res.status===200){
+                        return res.json()
+                    }}).then(data=>{
+                        changeAdSource(data.src)
+                        setAdLink(data.href)
+                        setAdId(data.ad_id)
+                    })
+                }
+            }
+    }
         console.log(video_info)
     },[video_info])
 
@@ -365,31 +382,11 @@ export const FuntubePlayer = ({
                     if(!_ads[i].visited){
                         player.current.pause() // 先把视频暂停
                         // 播放广告
-                        if (_ads[i].src!=="auto"){
-                            changeAdSource(_ads[i].src) 
-                            setPlayingAd(true)
-                            setAdLink(_ads[i].href||"https://midroll.funtubevideo.cn")
-                            setAdId(_ads[i].ad_id)
-                            setCountDown(5)
-                            _ads[i].visited = true
-                            setAds(_ads)
-                        }else{
-                            // 向服务器请求广告方案
-                            player.current.pause()
-                            console.log("fetching ad plan")
-                            fetch('/api/ad_plan')
-                            .then(res=>{if(res.status===200){
-                                return res.json()
-                            }}).then(data=>{
-                                changeAdSource(data.src)
-                                setPlayingAd(true)
-                                setAdLink(data.href)
-                                setAdId(data.ad_id)
-                                setCountDown(5)
-                                _ads[i].visited = true
-                                setAds(_ads)
-                            })
-                        }
+                        setPlayingAd(true)
+                        ad_player.current.play()
+                        setCountDown(5)
+                        _ads[i].visited = true
+                        setAds(_ads)
                     }
                 }
             }
@@ -558,7 +555,7 @@ export const FuntubePlayer = ({
                     width={'100%'}
                     height={player_height}
                     src={ad_source}
-                    autoPlay={true}
+                    autoPlay={false}
                     ref={ad_player}
                     style={{zIndex:3}}
                 >
