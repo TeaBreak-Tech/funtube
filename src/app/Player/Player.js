@@ -24,6 +24,7 @@ export const FuntubePlayer = ({
     ex_setPlayed,
     disableToggleFullPage,
     extra_info,
+    session_id,
     //ex_continuous_log,
     //ex_setContinuousLog,
 }) => {
@@ -31,6 +32,7 @@ export const FuntubePlayer = ({
     //let { pageVersion } = useParams();
     let pageVersion = new URLSearchParams(useLocation().search).get('mode')
     let test = new URLSearchParams(useLocation().search).get('test')
+    const pid = new URLSearchParams(useLocation().search).get('pid')
     if (!pageVersion){pageVersion='1'}
     //else{player_type = parseInt(player_type)}
     let show_svi = false//pageVersion!=='1'&&!hide_svi
@@ -68,11 +70,14 @@ export const FuntubePlayer = ({
     const [ count_down, setCountDown ] = React.useState(0)
     const [ ad_id, setAdId ] = React.useState(null)
 
-    const [ ad_toggling, setAdToggling ] = React.useState(false) // 单纯为了解决广告播放前后的 PAUSE/PLAY 误报
+    const [ progress_remember, setProgressRemember ] = React.useState(0)
+    const [ ad_progress_remember, setAdProgressRemember ] = React.useState(0)
+
+    // const [ ad_toggling, setAdToggling ] = React.useState(false) // 单纯为了解决广告播放前后的 PAUSE/PLAY 误报
 
     // const [ progress_remember, setProgressRemember ] = React.useState(0)
 
-    const [ played, setPlayed ] = React.useState(["---"])
+    const [ played, setPlayed ] = React.useState(["---"]) // 已播放区间，暂无用处
 
     const conventional_log = () => {
         let timestamp = Date.now()
@@ -82,7 +87,7 @@ export const FuntubePlayer = ({
             video_info:playing_ad?("ad_"+ad_id):("video_"+video_info.video_id),
             video_time:current_time,
             volume:player_state?player_state.muted?0:volume:volume,
-            buffered:buffered,
+            buffered:buffered || 0,
             playback_rate:player_state?player_state.playbackRate:1,
             is_fullscreen:fullscreen,
             is_fullpage,
@@ -126,6 +131,7 @@ export const FuntubePlayer = ({
                         return res.json()
                     }}).then(data=>{
                         changeAdSource(data.src)
+                        // setAdSource()
                         setAdLink(data.href)
                         setAdId(data.ad_id)
                     })
@@ -135,6 +141,11 @@ export const FuntubePlayer = ({
         console.log(video_info)
     },[video_info])
 
+
+    const changeSource = (name) => {
+        setSource(name)
+        player.current.load();
+    }
 
     const changeAdSource = (name) => {
         setAdSource(name)
@@ -177,7 +188,7 @@ export const FuntubePlayer = ({
         //console.log("odanconeqwofndvfvnofeianvionrgvowerbrebr")
         if(playing!==undefined
             && player_state.hasStarted // 为了解决视频开始播放前的一次 PAUSE 误报
-            && !ad_toggling // 广告与视频切换的 Play/Pause 不生成报告 （解决误报）
+            // && !ad_toggling // 广告与视频切换的 Play/Pause 不生成报告 （解决误报）
             && !playing_ad // 广告播放过程中默认不会暂停播放，以此排除掉全屏点开广告链接时的暂停播放误报
         ){
             logMessage({
@@ -185,7 +196,25 @@ export const FuntubePlayer = ({
                 description:'toggle play or pause',
                 ...conventional_log(),
             })
-        } 
+        }
+
+        // 全屏播放广告点击事件处理 (自动跳过广告)
+        if(playing===false && playing_ad && fullscreen && player_state.currentTime > 0.5){
+            logMessage({
+                label:'AD-CLICK',
+                description:'ad clicked and opened the url',
+                ...conventional_log(),
+            })
+            window.open(ad_link);
+            changeSource(video_info.url);
+            player.current.seek(progress_remember);
+            player.current.pause()
+            setPlayingAd(false)
+            setTimeout(()=>{
+                player.current.pause()
+                ad_player.current.pause()
+            },1000)
+        }
         // eslint-disable-next-line
     },[playing])
 
@@ -220,6 +249,16 @@ export const FuntubePlayer = ({
             description:'toggle fullscreen to:'+fullscreen,
             ...conventional_log(),
         })}
+
+        // 全屏状态下ESC退出广告的情况处理：
+        if(playing_ad){
+            ad_player.current.seek(current_time)
+            changeSource(video_info.url)
+            player.current.seek(progress_remember)
+            player.current.pause()
+            ad_player.current.play()
+        }
+
         // eslint-disable-next-line
     },[fullscreen])
 
@@ -298,7 +337,7 @@ export const FuntubePlayer = ({
 
         if(ad_player_state!==undefined && playing_ad){
             // 播放广告时，直接将广告播放进度赋值给进度条进度（造成不可拖动的效果）
-            setCurrentTime(ad_player_state.currentTime)
+            setCurrentTime(fullscreen?video_progress:ad_player_state.currentTime)
             // 并且直接汇报广告update事件
             logFrequentMessage({
                 label:'AD_UPDATE',
@@ -353,6 +392,13 @@ export const FuntubePlayer = ({
         
     },[count_down, playing])
 
+    const reportAdWatch = (data) => {
+        fetch('/api/report_ad_watch/',{
+            method:'POST',
+            body:JSON.stringify(data)
+        })
+    }
+
 
 
     // 视频进度改变时调用内容
@@ -374,22 +420,36 @@ export const FuntubePlayer = ({
             })
             setCurrentTime(video_progress)
         }
-        console.log(video_progress)
-        if (video_info && !player_state.paused){
+        console.log("video_progress:",video_progress)
+        if (video_info && player_state && !player_state.paused){
             let _ads = ads
             for (let i in _ads){
-                if (-0.5 < (_ads[i].time - video_progress) && (_ads[i].time - video_progress) < 0.5){ // 对比广告时间
+                if (-0.7 < (_ads[i].time - video_progress) && (_ads[i].time - video_progress) < 0.3){ // 对比广告时间
                     if(!_ads[i].visited){
                         player.current.pause() // 先把视频暂停
                         // 播放广告
                         setPlayingAd(true)
-                        ad_player.current.play()
                         setCountDown(5)
                         _ads[i].visited = true
                         setAds(_ads)
+                        if(fullscreen){
+                            // 全屏状态下，使用视频播放器来播放广告
+                            changeSource(ad_source)
+                            setProgressRemember(video_progress)
+                        }else{
+                            ad_player.current.play()
+                        }
+                        
+                        reportAdWatch({session_id, ad_id, pid})
                     }
                 }
             }
+        }
+
+        if(player_state && player_state.ended && playing_ad && fullscreen){
+            setPlayingAd(false)
+            changeSource(video_info.url)
+            player.current.seek(progress_remember)
         }
     },[video_progress])
 
@@ -436,7 +496,7 @@ export const FuntubePlayer = ({
                         disableDefaultControls
                         autoHide
                     >
-                        <div className="Player-toolbar">
+                        <div className="Player-toolbar" hidden={playing_ad}>
                             <div className="SVI-positioner">
                                 <div className="SVI-contianer">
                                 {show_svi?
@@ -525,14 +585,22 @@ export const FuntubePlayer = ({
                                     </Tooltip>:null}
                                     {disableToggleFullPage?null:<Button shape="circle" type="link"
                                         icon={is_fullpage?<FullscreenExitOutlined style={{ color: '#cceeff' }}/>:<FullscreenOutlined style={{ color: '#cceeff' }}/>} 
-                                        onClick={()=>{setIsFullPage(!is_fullpage);if(player_state.isFullscreen){player.current.toggleFullscreen()}}}
+                                        onClick={()=>{
+                                            setIsFullPage(!is_fullpage);
+                                            if(player_state.isFullscreen){
+                                                player.current.toggleFullscreen();
+                                                // ad_player.current.toggleFullscreen()
+                                            }}}
                                     />}
                                     <Button shape="circle" type="link"
                                         icon={<ExpandOutlined style={{ color: '#cceeff' }}/>} 
-                                        onClick={()=>{if(setIsFullPage){setIsFullPage(false)};if(player_state){
-                                            player.current.toggleFullscreen()
-                                            setPlayerHeight(HEIGHT)
-                                        }}}
+                                        onClick={()=>{
+                                            if(setIsFullPage){setIsFullPage(false)};
+                                            if(player_state){
+                                                player.current.toggleFullscreen()
+                                                setPlayerHeight(HEIGHT)
+                                            }
+                                        }}
                                     />
                                 </div>
                             </div>
@@ -578,7 +646,7 @@ export const FuntubePlayer = ({
                     <span>native_seeking:{player_state?player_state.seeking+'':"---"}</span>
                     <span>my_seeking:{seeking+''}</span>
                     <span>pid:{''+(extra_info?extra_info.pid:"---")}</span>
-                    <span>ad_toggling:{""+ad_toggling}</span>
+                    {/* <span>ad_toggling:{""+ad_toggling}</span> */}
                     <span>playing_ad:{""+playing_ad}</span>
                 </div>
             </div>:null}

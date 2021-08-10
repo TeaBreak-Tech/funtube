@@ -203,6 +203,7 @@ const PlayerPage = () => {
                         logFrequentMessage = {setNewFrequentMessage}
                         ex_setPlayed={setPlayed}
                         hide_svi = {!SHOW_SVI}
+                        session_id={session_id}
                     />
 
                     {is_fullpage?null:
