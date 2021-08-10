@@ -71,7 +71,6 @@ export const FuntubePlayer = ({
     const [ ad_id, setAdId ] = React.useState(null)
 
     const [ progress_remember, setProgressRemember ] = React.useState(0)
-    const [ ad_progress_remember, setAdProgressRemember ] = React.useState(0)
 
     // const [ ad_toggling, setAdToggling ] = React.useState(false) // 单纯为了解决广告播放前后的 PAUSE/PLAY 误报
 
@@ -196,24 +195,6 @@ export const FuntubePlayer = ({
                 description:'toggle play or pause',
                 ...conventional_log(),
             })
-        }
-
-        // 全屏播放广告点击事件处理 (自动跳过广告)
-        if(playing===false && playing_ad && fullscreen && player_state.currentTime > 0.5){
-            logMessage({
-                label:'AD-CLICK',
-                description:'ad clicked and opened the url',
-                ...conventional_log(),
-            })
-            window.open(ad_link);
-            changeSource(video_info.url);
-            player.current.seek(progress_remember);
-            player.current.pause()
-            setPlayingAd(false)
-            setTimeout(()=>{
-                player.current.pause()
-                ad_player.current.pause()
-            },1000)
         }
         // eslint-disable-next-line
     },[playing])
@@ -344,6 +325,25 @@ export const FuntubePlayer = ({
                 description:'advertisement playing',
                 ...conventional_log()
             })
+
+            // 全屏播放广告点击广告事件处理 (自动跳过广告)
+            if(playing===false && playing_ad && fullscreen && !player_state.ended && player_state.currentTime > 0.5){
+                alert("ad click")
+                logMessage({
+                    label:'AD-CLICK',
+                    description:'ad clicked and opened the url',
+                    ...conventional_log(),
+                })
+                window.open(ad_link);
+                changeSource(video_info.url);
+                player.current.seek(progress_remember);
+                player.current.pause()
+                setPlayingAd(false)
+                setTimeout(()=>{
+                    player.current.pause()
+                    ad_player.current.pause()
+                },1000)
+            }
             
             // 广告播放结束时
             if(ad_player_state.ended){// 切换回原本的视频
