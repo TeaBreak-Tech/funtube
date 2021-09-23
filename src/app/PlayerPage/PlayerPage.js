@@ -78,7 +78,7 @@ const PlayerPage = () => {
             }
         })
         .then(data=>{
-            if(data){
+            if(data && data.videos){
                 //console.log(data)
                 setVideoInfo(data.videos[0])
                 console.log("Session start successfully")

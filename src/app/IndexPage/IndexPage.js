@@ -58,6 +58,7 @@ const IndexPage = () => {
                 return response.json()
             }
         }).then(data=>{if(data){
+            console.log(data)
             setVideos(data.videos)
             setTitle(data.title)
         }}).catch(()=>{

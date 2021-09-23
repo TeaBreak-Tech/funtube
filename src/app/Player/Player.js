@@ -9,6 +9,7 @@ import { Chart, LineAdvance} from 'bizcharts';
 import { Slider, Button, Tooltip, Switch } from 'antd';
 import { ExpandOutlined, PlayCircleOutlined, PauseCircleOutlined, SoundOutlined, SettingOutlined, FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons';
 import { useLocation } from "react-router-dom";
+import { LikeButton } from './LikeButton';
 
 export const HEIGHT = 460
 export const WIDTH = 680
@@ -28,7 +29,7 @@ export const FuntubePlayer = ({
     //ex_setContinuousLog,
 }) => {
 
-    //let { pageVersion } = useParams();
+    let voting_default = new URLSearchParams(useLocation().search).get('vote')
     let pageVersion = new URLSearchParams(useLocation().search).get('mode')
     let test = new URLSearchParams(useLocation().search).get('test')
     if (!pageVersion){pageVersion='1'}
@@ -71,6 +72,10 @@ export const FuntubePlayer = ({
 
 
     const [ played, setPlayed ] = React.useState(["---"])
+
+    const [ voting, setVoting ] = React.useState(false)
+    const [ voted, setVoted ] = React.useState(false)
+    // console.log(voting, voting_default)
 
     const conventional_log = () => {
         let timestamp = Date.now()
@@ -592,9 +597,11 @@ export const FuntubePlayer = ({
                                 />}
                                 <Button shape="circle" type="link"
                                     icon={<ExpandOutlined style={{ color: '#cceeff' }}/>} 
-                                    onClick={()=>{if(setIsFullPage){setIsFullPage(false)};if(player_state){
-                                        player.current.toggleFullscreen()
-                                        setPlayerHeight(HEIGHT)
+                                    onClick={()=>{
+                                        if(setIsFullPage){setIsFullPage(false)};
+                                        if(player_state){
+                                            player.current.toggleFullscreen()
+                                            setPlayerHeight(HEIGHT)
                                     }}}
                                 />
                             </div>
@@ -659,8 +666,57 @@ export const FuntubePlayer = ({
                 </div>
             </div>:null}
 
+            {voting?
+                <div className={voted?"voting-card voting-card-fadeOut":"voting-card"}>
+                    <div className="voting-topic"><b>更喜欢吃香蕉还是苹果？</b></div>
+                    <div className="voting-choices">
+                        {voting_data.map(item=>{
+                            return(
+                                <div style={{display:"flex",flexDirection:"row",justifyContent:"center"}}>
+                                    {voted?
+                                        <div className="voted-shell">
+                                            <div style={{
+                                                    width:`${item.current_popularity}%`, 
+                                                    height:"100%",
+                                                    backgroundColor:"bisque",
+                                                    display:"flex",
+                                                    flexDirection:"column",
+                                                    justifyContent:"center"
+
+                                            }}>
+                                                {item.current_popularity}
+                                            </div>
+                                        </div>
+                                    :
+                                        <div>
+                                            <button 
+                                                className="voting-button" 
+                                                type="primary"
+                                                onClick={()=>{setVoted(true)}}
+                                            >{item.choice}</button>
+                                        </div>
+                                    }
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            :null}
+
+            {voting_default==1?<Button type="primary" onClick={()=>{setVoting(!voting)}}>vote</Button>:null}
+
         </div>
     )
 }
 
 export default FuntubePlayer
+
+const voting_data = [
+    {
+        choice: "香蕉",
+        current_popularity: 35,
+    },{
+        choice: "苹果",
+        current_popularity: 65,
+    },
+]
