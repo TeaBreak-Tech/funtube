@@ -224,10 +224,10 @@
 }
 
 .voting-card-fadeOut{
-    animation: FadeOut ease 1.5s;
-    animation-delay: 3s;
-    animation-iteration-count: 1;
-    animation-fill-mode: forwards;
+    animation: FadeOut ease 1.5s !important;
+    animation-delay: 5s !important;
+    animation-iteration-count: 1 !important;
+    animation-fill-mode: forwards !important;
 }
 
 @keyframes FadeIn{
@@ -262,14 +262,37 @@
 .voting-button{
     width: 150px;
     margin-top: 5px;
-    height: 25px;
+    height: 28px;
+    border-radius: 14px;
+    overflow: hidden;
 }
 
 .voted-shell{
     width: 150px;
     margin-top: 5px;
-    /* background-color: bisque */
-    height: 25px;
+    height: 28px;
+    animation: FadeIn ease 1s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+}
+
+.giveLike-options{
+    margin-top: 7px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.like-card{
+    z-index: 2;
+    position: absolute;
+    margin-left: 50px;
+    margin-top: 280px;
+    width: 100px;
+    color: white;
+    border-radius: 10px;
+    padding: 0 0 10px 0;
+    background-color: rgba(0, 0, 0, 0.5);
     animation: FadeIn ease 1s;
     animation-iteration-count: 1;
     animation-fill-mode: forwards;
