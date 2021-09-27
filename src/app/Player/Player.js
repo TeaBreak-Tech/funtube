@@ -82,7 +82,7 @@ export const FuntubePlayer = ({
         [
             {
                 question: new URLSearchParams(useLocation().search).get('question'), //"更喜欢吃香蕉还是苹果？",
-                popOut_time: new URLSearchParams(useLocation().search).get('popTime'),
+                popOut_time: new URLSearchParams(useLocation().search).get('popTime_vote'),
                 // count: 988,
                 options: new URLSearchParams(useLocation().search).get('choices')
                 // [
@@ -109,7 +109,7 @@ export const FuntubePlayer = ({
     const [ thumbs, setThumbs ] = React.useState(undefined)
     const [ coin, setCoin ] = React.useState(undefined)
     const [ giveData, setGiveData ] = React.useState({
-        popOut_time: 2000
+        popOut_time: new URLSearchParams(useLocation().search).get("popTime_like")
     })
 
     const conventional_log = () => {
