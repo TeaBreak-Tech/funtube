@@ -53,7 +53,7 @@ export const FuntubePlayer = ({
     const [ seek_from, setSeekFrom ] = React.useState(undefined)
     const [ SVI, setSVI ] = React.useState()
     const [ buffered, setBuffered ] = React.useState()
-    const [ fullscreen, setFullScreen ] = React.useState()
+    const [ fullscreen, setFullScreen ] = React.useState(false)
     const [ volume, setVolume ] = React.useState()
     const [ playback_rate, setPlaybackRate ] = React.useState(undefined)
     //const [ video_info, setVideoInfo ] = React.useState(ex_video_info)
@@ -74,30 +74,34 @@ export const FuntubePlayer = ({
 
     // 投票弹幕
     const [ voting, setVoting ] = React.useState(false)
-    const [ voted, setVoted ] = React.useState(false)
+    const [ voted, setVoted ] = React.useState(undefined)
 
     // 暂时用常量代替
     const [ voting_data, setVoting_data ] = React.useState(undefined)
     const [ voting_data_set, setVoting_data_set ] = React.useState(
         [
             {
-                question: "更喜欢吃香蕉还是苹果？",
-                popOut_time: 5000,
-                count: 988,
-                options: [
-                    {
-                        choice: "香蕉",
-                        current_popularity: 315,
-                        distrib: `${31500/988}%`
-                    },{
-                        choice: "苹果",
-                        current_popularity: 673,
-                        distrib: `${67300/988}%`
-                    },
-                ]
+                question: new URLSearchParams(useLocation().search).get('question'), //"更喜欢吃香蕉还是苹果？",
+                popOut_time: new URLSearchParams(useLocation().search).get('popTime'),
+                // count: 988,
+                options: new URLSearchParams(useLocation().search).get('choices')
+                // [
+                //     {
+                //         choice: "香蕉",
+                //         // current_popularity: 315,
+                //         // distrib: `${31500/988}%`
+                //     },{
+                //         choice: "苹果",
+                //         // current_popularity: 673,
+                //         // distrib: `${67300/988}%`
+                //     },
+                // ]
             },
         ]
-    ) 
+    )
+    React.useEffect(()=>{
+        console.log(voting_data_set)
+    },[voting_data_set])
     
     // 点赞
     const [ giveLike, setGiveLike ] = React.useState(false)
@@ -403,9 +407,10 @@ export const FuntubePlayer = ({
         }
 
         // 修改全屏状态以便监听
-        if(player_state!==undefined&&player_state.isFullscreen!==fullscreen){
-            setFullScreen(player_state.isFullscreen)
-        }
+        // if(player_state!==undefined&&player_state.isFullscreen!==fullscreen){
+        //     setFullScreen(player_state.isFullscreen)
+        // }
+        
         // 修改音量状态以便监听
         if(player_state!==undefined&&player_state.volume!==volume){
             setVolume(player_state.volume)
@@ -652,8 +657,11 @@ export const FuntubePlayer = ({
                                     onClick={()=>{
                                         if(setIsFullPage){setIsFullPage(false)};
                                         if(player_state){
-                                            player.current.toggleFullscreen()
-                                            setPlayerHeight(HEIGHT)
+                                            setFullScreen(!fullscreen)
+                                            fullscreen?document.webkitCancelFullScreen():document.querySelector(".Player-container").webkitRequestFullScreen()
+
+                                            // setPlayerHeight(HEIGHT)
+                                            // player.current.toggleFullscreen()
                                     }}}
                                 />
                             </div>
@@ -722,10 +730,10 @@ export const FuntubePlayer = ({
                 <div className={voted?"voting-card voting-card-fadeOut":"voting-card"}>
                     <div className="voting-topic"><b>{voting_data.question}</b></div>
                     <div className="voting-choices">
-                        {voting_data.options.map(item=>{
+                        {voting_data.options.split(" ").map(item=>{
                             return(
                                 <div style={{display:"flex",flexDirection:"row",justifyContent:"center"}}>
-                                    {voted?
+                                    {/* {voted?
                                         <div className="voted-shell">
                                             <div style={{
                                                     width:item.distrib, 
@@ -740,15 +748,17 @@ export const FuntubePlayer = ({
                                                 {item.current_popularity}
                                             </div>
                                         </div>
-                                    :
+                                    : */}
                                         <div className="voting-button" >
                                             <button 
-                                                style={{width:"100%",height:"100%"}}
+                                                style={{width:"100%",height:"100%",backgroundColor:item==voted?`orange`:"white"}}
                                                 type="primary"
-                                                onClick={()=>{setVoted(true)}}
-                                            >{item.choice}</button>
+                                                onClick={()=>{if(voted==undefined){
+                                                    setVoted(item);message.success("投票成功!",1)
+                                                }}}
+                                            >{item}</button>
                                         </div>
-                                    }
+                                    {/* } */}
                                 </div>
                             )
                         })}
@@ -761,11 +771,15 @@ export const FuntubePlayer = ({
                     <div className="giveLike-options">
                         <LikeOutlined
                             style={{fontSize:"x-large", color:thumbs?"orange":"white"}} 
-                            onClick={()=>{setThumbs(true); message.success("点赞成功!"); setGiven(true)}}
+                            onClick={()=>{if(given==false){
+                                setThumbs(true); message.success("点赞成功!",1); setGiven(true)
+                            }}}
                         />
                         <PoundCircleOutlined
                             style={{fontSize:"x-large", color:coin?"orange":"white"}} 
-                            onClick={()=>{setCoin(true); message.success("投币成功!"); setGiven(true)}}
+                            onClick={()=>{if(given==false){
+                                setCoin(true); message.success("投币成功!",1); setGiven(true)
+                            }}}
                         />
                     </div>
                 </div>    
