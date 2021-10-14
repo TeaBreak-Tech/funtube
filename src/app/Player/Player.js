@@ -81,26 +81,15 @@ export const FuntubePlayer = ({
     const [ voting_data_set, setVoting_data_set ] = React.useState(
         [
             {
-                question: new URLSearchParams(useLocation().search).get('question'), //"更喜欢吃香蕉还是苹果？",
-                popOut_time: new URLSearchParams(useLocation().search).get('popTime_vote'),
-                // count: 988,
+                question: new URLSearchParams(useLocation().search).get('question'),
+                popOut_time: parseInt(new URLSearchParams(useLocation().search).get('popTime_vote')),
                 options: new URLSearchParams(useLocation().search).get('choices')
-                // [
-                //     {
-                //         choice: "香蕉",
-                //         // current_popularity: 315,
-                //         // distrib: `${31500/988}%`
-                //     },{
-                //         choice: "苹果",
-                //         // current_popularity: 673,
-                //         // distrib: `${67300/988}%`
-                //     },
-                // ]
             },
         ]
     )
     React.useEffect(()=>{
         console.log(voting_data_set)
+        console.log("like:", giveData)
     },[voting_data_set])
     
     // 点赞
@@ -109,7 +98,7 @@ export const FuntubePlayer = ({
     const [ thumbs, setThumbs ] = React.useState(undefined)
     const [ coin, setCoin ] = React.useState(undefined)
     const [ giveData, setGiveData ] = React.useState({
-        popOut_time: new URLSearchParams(useLocation().search).get("popTime_like")
+        popOut_time: parseInt(new URLSearchParams(useLocation().search).get("popTime_like"))
     })
 
     const conventional_log = () => {
@@ -301,6 +290,27 @@ export const FuntubePlayer = ({
         })}
         // eslint-disable-next-line
     },[volume])
+
+    // Event: VOTING
+    React.useEffect(()=>{
+        if(player_state&&player_state.hasStarted){logMessage({
+            label:'VOTING',
+            description:'choose choice '+voted+' in question '+voting_data.question,
+            ...conventional_log()
+        })}
+        // eslint-disable-next-line
+    },[voted])
+
+    // Event: GIVING LIKE
+    React.useEffect(()=>{
+        console.log("thumbs and coin:",thumbs,coin)
+        if(player_state&&player_state.hasStarted){logMessage({
+            label:'LIKE',
+            description:`give ${thumbs?"thumbs-up":null}${coin?" and coin":null}`,
+            ...conventional_log()
+        })}
+        // eslint-disable-next-line
+    },[given])
 
     React.useEffect(()=>{
         player.current.subscribeToStateChange(state=>setPlayerState(state)); 
@@ -520,6 +530,9 @@ export const FuntubePlayer = ({
             if (-0.5 < (give_time - actual_current_time) && (give_time - actual_current_time) < 0.5){
                 setGiveLike(true)
             }
+            if (-5.5 < (give_time - actual_current_time) && (give_time - actual_current_time) < -4.5){
+                setGiven(true)
+            }
         }
     },[actual_current_time])
 
@@ -726,7 +739,7 @@ export const FuntubePlayer = ({
                 </div>
             </div>:null}
 
-            {voting?
+            {voting&&voting_data?
                 <div className={voted?"voting-card voting-card-fadeOut":"voting-card"}>
                     <div className="voting-topic"><b>{voting_data.question}</b></div>
                     <div className="voting-choices">
@@ -771,15 +784,15 @@ export const FuntubePlayer = ({
                     <div className="giveLike-options">
                         <LikeOutlined
                             style={{fontSize:"x-large", color:thumbs?"orange":"white"}} 
-                            onClick={()=>{if(given==false){
-                                setThumbs(true); message.success("点赞成功!",1); setGiven(true)
-                            }}}
+                            onClick={()=>{
+                                setThumbs(true); message.success("点赞成功!",1)
+                            }}
                         />
                         <PoundCircleOutlined
                             style={{fontSize:"x-large", color:coin?"orange":"white"}} 
-                            onClick={()=>{if(given==false){
-                                setCoin(true); message.success("投币成功!",1); setGiven(true)
-                            }}}
+                            onClick={()=>{
+                                setCoin(true); message.success("投币成功!",1)
+                            }}
                         />
                     </div>
                 </div>    
