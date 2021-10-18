@@ -6,8 +6,8 @@ import './VideoToolbar.css'
 //import './Antd.css'
 import { Player, BigPlayButton,ControlBar } from 'video-react';
 import { Chart, LineAdvance} from 'bizcharts';
-import { Slider, Button, Tooltip, Switch } from 'antd';
-import { ExpandOutlined, PlayCircleOutlined, PauseCircleOutlined, SoundOutlined, SettingOutlined, FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons';
+import { Slider, Button, Tooltip, Switch, message } from 'antd';
+import { ExpandOutlined, PlayCircleOutlined, PauseCircleOutlined, SoundOutlined, SettingOutlined, FullscreenOutlined, FullscreenExitOutlined, SmileOutlined, FrownOutlined, LikeOutlined, PoundCircleOutlined } from '@ant-design/icons';
 import { useLocation } from "react-router-dom";
 
 export const HEIGHT = 460
@@ -28,7 +28,7 @@ export const FuntubePlayer = ({
     //ex_setContinuousLog,
 }) => {
 
-    //let { pageVersion } = useParams();
+    let voting_default = new URLSearchParams(useLocation().search).get('vote')
     let pageVersion = new URLSearchParams(useLocation().search).get('mode')
     let test = new URLSearchParams(useLocation().search).get('test')
     if (!pageVersion){pageVersion='1'}
@@ -53,7 +53,7 @@ export const FuntubePlayer = ({
     const [ seek_from, setSeekFrom ] = React.useState(undefined)
     const [ SVI, setSVI ] = React.useState()
     const [ buffered, setBuffered ] = React.useState()
-    const [ fullscreen, setFullScreen ] = React.useState()
+    const [ fullscreen, setFullScreen ] = React.useState(false)
     const [ volume, setVolume ] = React.useState()
     const [ playback_rate, setPlaybackRate ] = React.useState(undefined)
     //const [ video_info, setVideoInfo ] = React.useState(ex_video_info)
@@ -71,6 +71,35 @@ export const FuntubePlayer = ({
 
 
     const [ played, setPlayed ] = React.useState(["---"])
+
+    // 投票弹幕
+    const [ voting, setVoting ] = React.useState(false)
+    const [ voted, setVoted ] = React.useState(undefined)
+
+    // 暂时用常量代替
+    const [ voting_data, setVoting_data ] = React.useState(undefined)
+    const [ voting_data_set, setVoting_data_set ] = React.useState(
+        [
+            {
+                question: new URLSearchParams(useLocation().search).get('question'),
+                popOut_time: parseInt(new URLSearchParams(useLocation().search).get('popTime_vote')),
+                options: new URLSearchParams(useLocation().search).get('choices')
+            },
+        ]
+    )
+    React.useEffect(()=>{
+        console.log(voting_data_set)
+        console.log("like:", giveData)
+    },[voting_data_set])
+    
+    // 点赞
+    const [ giveLike, setGiveLike ] = React.useState(false)
+    const [ given, setGiven ] = React.useState(false)
+    const [ thumbs, setThumbs ] = React.useState(undefined)
+    const [ coin, setCoin ] = React.useState(undefined)
+    const [ giveData, setGiveData ] = React.useState({
+        popOut_time: parseInt(new URLSearchParams(useLocation().search).get("popTime_like"))
+    })
 
     const conventional_log = () => {
         let timestamp = Date.now()
@@ -262,6 +291,27 @@ export const FuntubePlayer = ({
         // eslint-disable-next-line
     },[volume])
 
+    // Event: VOTING
+    React.useEffect(()=>{
+        if(player_state&&player_state.hasStarted){logMessage({
+            label:'VOTING',
+            description:'choose choice '+voted+' in question '+voting_data.question,
+            ...conventional_log()
+        })}
+        // eslint-disable-next-line
+    },[voted])
+
+    // Event: GIVING LIKE
+    React.useEffect(()=>{
+        console.log("thumbs and coin:",thumbs,coin)
+        if(player_state&&player_state.hasStarted){logMessage({
+            label:'LIKE',
+            description:`give ${thumbs?"thumbs-up":null}${coin?" and coin":null}`,
+            ...conventional_log()
+        })}
+        // eslint-disable-next-line
+    },[given])
+
     React.useEffect(()=>{
         player.current.subscribeToStateChange(state=>setPlayerState(state)); 
     })
@@ -367,9 +417,10 @@ export const FuntubePlayer = ({
         }
 
         // 修改全屏状态以便监听
-        if(player_state!==undefined&&player_state.isFullscreen!==fullscreen){
-            setFullScreen(player_state.isFullscreen)
-        }
+        // if(player_state!==undefined&&player_state.isFullscreen!==fullscreen){
+        //     setFullScreen(player_state.isFullscreen)
+        // }
+        
         // 修改音量状态以便监听
         if(player_state!==undefined&&player_state.volume!==volume){
             setVolume(player_state.volume)
@@ -457,6 +508,30 @@ export const FuntubePlayer = ({
                         }
                     }
                 }
+            }
+        }
+    },[actual_current_time])
+
+    // 弹幕
+    React.useEffect(()=>{
+        // 对比播放时间与投票弹幕的时间
+        if (video_info && voting_data_set && voting_default==1){
+            for (let i in voting_data_set){
+                let voting_time = (voting_data_set[i].popOut_time)/1000 // 毫秒换算成秒
+                if (-0.5 < (voting_time - actual_current_time) && (voting_time - actual_current_time) < 0.5){
+                    setVoting_data(voting_data_set[i])
+                    setVoting(true)
+                }
+            }
+        }
+        // 对比播放时间与点赞投币弹幕的时间
+        if (video_info && giveData && voting_default==1){
+            let give_time = (giveData.popOut_time)/1000 // 毫秒换算成秒
+            if (-0.5 < (give_time - actual_current_time) && (give_time - actual_current_time) < 0.5){
+                setGiveLike(true)
+            }
+            if (-5.5 < (give_time - actual_current_time) && (give_time - actual_current_time) < -4.5){
+                setGiven(true)
             }
         }
     },[actual_current_time])
@@ -592,9 +667,14 @@ export const FuntubePlayer = ({
                                 />}
                                 <Button shape="circle" type="link"
                                     icon={<ExpandOutlined style={{ color: '#cceeff' }}/>} 
-                                    onClick={()=>{if(setIsFullPage){setIsFullPage(false)};if(player_state){
-                                        player.current.toggleFullscreen()
-                                        setPlayerHeight(HEIGHT)
+                                    onClick={()=>{
+                                        if(setIsFullPage){setIsFullPage(false)};
+                                        if(player_state){
+                                            setFullScreen(!fullscreen)
+                                            fullscreen?document.webkitCancelFullScreen():document.querySelector(".Player-container").webkitRequestFullScreen()
+
+                                            // setPlayerHeight(HEIGHT)
+                                            // player.current.toggleFullscreen()
                                     }}}
                                 />
                             </div>
@@ -658,6 +738,65 @@ export const FuntubePlayer = ({
                     </button>
                 </div>
             </div>:null}
+
+            {voting&&voting_data?
+                <div className={voted?"voting-card voting-card-fadeOut":"voting-card"}>
+                    <div className="voting-topic"><b>{voting_data.question}</b></div>
+                    <div className="voting-choices">
+                        {voting_data.options.split(" ").map(item=>{
+                            return(
+                                <div style={{display:"flex",flexDirection:"row",justifyContent:"center"}}>
+                                    {/* {voted?
+                                        <div className="voted-shell">
+                                            <div style={{
+                                                    width:item.distrib, 
+                                                    height:"100%",
+                                                    backgroundColor:"bisque",
+                                                    display:"flex",
+                                                    flexDirection:"column",
+                                                    justifyContent:"center",
+                                                    borderRadius:"14px"
+
+                                            }}>
+                                                {item.current_popularity}
+                                            </div>
+                                        </div>
+                                    : */}
+                                        <div className="voting-button" >
+                                            <button 
+                                                style={{width:"100%",height:"100%",backgroundColor:item==voted?`orange`:"white"}}
+                                                type="primary"
+                                                onClick={()=>{if(voted==undefined){
+                                                    setVoted(item);message.success("投票成功!",1)
+                                                }}}
+                                            >{item}</button>
+                                        </div>
+                                    {/* } */}
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            :null}
+
+            {giveLike?
+                <div className={given?"like-card voting-card-fadeOut":"like-card"}>
+                    <div className="giveLike-options">
+                        <LikeOutlined
+                            style={{fontSize:"x-large", color:thumbs?"orange":"white"}} 
+                            onClick={()=>{
+                                setThumbs(true); message.success("点赞成功!",1)
+                            }}
+                        />
+                        <PoundCircleOutlined
+                            style={{fontSize:"x-large", color:coin?"orange":"white"}} 
+                            onClick={()=>{
+                                setCoin(true); message.success("投币成功!",1)
+                            }}
+                        />
+                    </div>
+                </div>    
+            :null}
 
         </div>
     )

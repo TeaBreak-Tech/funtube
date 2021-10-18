@@ -78,7 +78,7 @@ const PlayerPage = () => {
             }
         })
         .then(data=>{
-            if(data){
+            if(data && data.videos){
                 //console.log(data)
                 setVideoInfo(data.videos[0])
                 console.log("Session start successfully")
@@ -147,9 +147,10 @@ const PlayerPage = () => {
                 method:'POST',
                 body:JSON.stringify({...new_message,session_id:session_id,pid})
             })
-        }else{
-            console.log(new_message)
         }
+        // else{
+            console.log(new_message)
+        // }
         // eslint-disable-next-line
     },[new_message])
 
